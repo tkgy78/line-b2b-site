@@ -1,0 +1,1 @@
+<?php require_once '../db.php'; $stmt = $db->prepare('INSERT INTO series (name, brand_id) VALUES (?, ?)'); $stmt->bind_param('si', $_POST['name'], $_POST['brand_id']); $stmt->execute(); header('Location: index.php');

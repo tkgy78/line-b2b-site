@@ -1,0 +1,1 @@
+<?php require_once '../db.php'; $id = intval($_GET['id']); $db->query("DELETE FROM series WHERE id = $id"); header('Location: index.php');
