@@ -228,6 +228,10 @@ include __DIR__ . '/partials/header.php';
       <textarea name="short_desc" rows="4" class="form-control"><?= 
         htmlspecialchars($product['short_desc'] ?? '') 
       ?></textarea>
+        <div class="mb-4">
+        <label class="form-label" for="description">商品詳細說明</label>
+        <textarea name="description" id="description" rows="10" class="form-control"><?= htmlspecialchars($product['description']) ?? '' ?></textarea>
+        </div>    
     </div>
 
     <!-- 最後的送出按鈕 -->
