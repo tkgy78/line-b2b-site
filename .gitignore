@@ -1,0 +1,28 @@
+# macOS 系統自動產生的檔案
+.DS_Store
+
+# IDE 編輯器設定（可依使用情況調整）
+.vscode/
+.idea/
+
+# 圖片縮圖、快取、暫存檔
+*.log
+*.tmp
+*.bak
+*.swp
+*.swo
+*.~*
+
+# 上傳後產生的封面圖或使用者圖片（視情況保留）
+uploads/temp/
+uploads/cache/
+
+# 資料庫密碼設定檔（⚠️重要）
+config.php
+
+# Composer / node_modules（如果你之後用到）
+vendor/
+node_modules/
+
+# 不要上傳你的本地資料庫檔案
+*.sql
