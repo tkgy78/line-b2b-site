@@ -198,11 +198,9 @@ include __DIR__ . '/partials/header.php';
             <td class="text-nowrap">
               <!-- 桌機版：編輯／詳情／刪除 -->
               <div class="d-none d-md-inline">
-                <a href="edit_basic.php?id=<?= $product['id'] ?>" class="btn btn-sm btn-warning">編輯</a>
-                <a href="edit_detail.php?id=<?= $product['id'] ?>" class="btn btn-sm btn-secondary">詳情</a>
-                <a href="delete.php?id=<?= $p['id'] ?>"
-                   onclick="return confirm('確定要刪除這筆商品？');"
-                   class="btn btn-sm btn-danger">刪除</a>
+                <a href="edit_basic.php?id=<?= $p['id'] ?>" class="btn btn-sm btn-warning">編輯</a>
+                <a href="edit_detail.php?id=<?= $p['id'] ?>" class="btn btn-sm btn-secondary">詳情</a>
+                <a href="delete.php?id=<?= $p['id'] ?>" class="btn btn-sm btn-danger" onclick="return confirm('確認要刪除這項商品嗎？')">刪除</a>
               </div>
 
               <!-- 手機版：更多按鈕 -->
