@@ -31,4 +31,5 @@
     </div>
   </div>
 </div>
+<script src="../assets/js/edit_modal.js"></script>
 </body></html>
