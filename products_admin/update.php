@@ -1,5 +1,5 @@
 <?php
-// products_v2/update.php
+// products_admin/update.php
 
 require_once __DIR__ . '/../db.php';
 $pdo = connect();

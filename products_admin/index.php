@@ -1,5 +1,5 @@
 <?php
-// products_v2/index.php
+// products_admin/index.php
 
 require_once __DIR__ . '/../db.php';  // 載入 db.php，請確保 connect() 函式正確
 $pdo = connect();

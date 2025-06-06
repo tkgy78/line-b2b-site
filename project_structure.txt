@@ -1,0 +1,376 @@
+.
+|____taxonomy_create.php
+|____login.php
+|____.DS_Store
+|____products
+| |____index.php
+| |____create.php
+| |_____partials
+| | |____header.php
+| | |____footer.php
+| |____detail
+| | |____view.php
+| |____store_product.php
+|____index.php
+|____products_v2
+| |____update.php
+| |____.DS_Store
+| |____index.php
+| |____update_product_basic.php
+| |____create.php
+| |____detail
+| | |____view.php
+| |____edit_basic_modal.php
+| |____delete.php
+| |____edit.php
+| |____assets
+| | |____.DS_Store
+| | |____js
+| | | |____.DS_Store
+| | | |____edit_basic.js
+| | | |____edit_modal.js
+| |____edit_basic.php
+| |____partials
+| | |____header.php
+| | |____footer.php
+| |____edit_detail.php
+| |____store_product.php
+| |____edit_detail_modal.php
+|____logout.php
+|____uploads
+| |____product_files
+| |____.DS_Store
+| |____product_images
+| |____brand_logos
+| | |____GOLDHORN_1748878768.jpg
+| | |____no-logo.png
+| | |____MOSCONI_1748878429.jpg
+| | |____test_1748878395.jpg
+|____config.php
+|____project_structure.txt
+|____product_store.php
+|____db.php
+|____.gitignore
+|____product_list.php
+|____taxonomy_manager_v3
+| |____delete_series.php
+| |____store_series.php
+| |____.DS_Store
+| |____index.php
+| |____edit_series.php
+| |____store_brand.php
+| |____store_category.php
+| |____edit_category.php
+| |____delete_category.php
+| |____delete_brand.php
+| |____edit_brand.php
+|____taxonomy_manager_v4
+| |____store_series.php
+| |____index.php
+| |____store_brand.php
+| |____store_category.php
+|____product_create.php
+|____taxonomy_manager_v5
+| |____delete_series.php
+| |____store_series.php
+| |____.DS_Store
+| |____index.php
+| |____store_brand.php
+| |____store_category.php
+| |____delete_category.php
+| |____delete_brand.php
+| |____views
+| | |____brand_section.php
+| | |____category_section.php
+| | |____series_section.php
+| | |____header.php
+| | |____footer.php
+| |____edit_brand.php
+|____taxonomy_manager_v2
+| |____.DS_Store
+| |____index.php
+| |____db.php
+| |____style.css
+| |____delete.php
+| |____edit.php
+| |____save.php
+|____taxonomy_manager_v3 2
+| |____index.php
+|____products.php
+|____.git
+| |____config
+| |____objects
+| | |____95
+| | | |____2c1a9614eeb21f5c8a83b8ee1269cd1dbf0711
+| | |____50
+| | | |____08ddfcf53c02e82d7eee2e57c38e5672ef89f6
+| | | |____5be1c93acd30a3747aedd265e16ab204f5f671
+| | |____68
+| | | |____43c34cf63d71ecb5a54dbd9259b870d98b0e25
+| | |____6f
+| | | |____af40086eec17068d6f1c367d1cc5bbd29de46c
+| | |____9b
+| | | |____6909011bdb5c942c5e0cd387cfb89c5c2cd79c
+| | |____04
+| | | |____c7c9b2541bfce72d498d0d06edaaa5504b3ffc
+| | | |____bca6e8ee85ca8c85df175659f174181961fda2
+| | |____6a
+| | | |____9addaea468896f0341be26645c3758fcd3b90b
+| | |____69
+| | | |____c6e11f4bcc9aca3647c709c8a586e0616e2f50
+| | |____3c
+| | | |____1ea2576c83f03736471cc3f06301c18b58d7d4
+| | |____51
+| | | |____2d9b585e74c531b3e2b01857087421539bb99b
+| | |____67
+| | | |____7ff590e20117e07e473bb48e106bd1601caac7
+| | | |____d38a41244d26d143086dcefacf653d2c2e0c88
+| | |____93
+| | | |____280ac6c97633834e3f462f6532f30d8a3cfab4
+| | |____0e
+| | | |____c8629fed3164808bfe62f1e6bb49d2ee4be6e6
+| | |____60
+| | | |____15792966c9551716dc52e40da176c2b2f3a691
+| | |____5a
+| | | |____f3b59da1b543e7cf26efdda50b737e04fd5f55
+| | |____33
+| | | |____16d248c2020cafb5e31c8026ef5dc1705d7c99
+| | |____05
+| | | |____48168f00f9aca2a52f04bb5f610609fee0fae8
+| | |____02
+| | | |____f984d6343bda9325016c7584864e7b1f704689
+| | | |____91fc8d23a087b2f96a7a89b5d8eea2dbede57a
+| | |____a4
+| | | |____285e0ff79d4bf5139b3df4a7a7895a72034bd3
+| | | |____6470aa7c766015c63e3dc3de68d8937bd6782a
+| | |____a3
+| | | |____81c368864c37a9e028fa9d4f03023b15a33342
+| | |____b5
+| | | |____6a78e04887cdf60b44b7be28fde018992f8798
+| | | |____959f769cbb795a0325fa7caab415205a192a0d
+| | |____b2
+| | | |____12926196b334b2f31e4af4d5fd0daf54211eae
+| | | |____553f3cc02dc299234af4499a16df9b5c369375
+| | |____bb
+| | | |____856a40b729dfcc8fa3d423a99023c822e39358
+| | | |____9d29a9407fa20e2f26b5eda1834f1952cab5f3
+| | |____a5
+| | | |____66d42526f14332d5d594baf5afeae92df7b478
+| | |____bd
+| | | |____e5bf62627a058f5811b1736b135f15174d8479
+| | |____d1
+| | | |____b4d9e31b64ae1be73676e97dbc8f652d498640
+| | |____d6
+| | | |____bd4422bf8487bb8a73e584dd080323e71baf08
+| | |____ae
+| | | |____56653a9742497664dbdbf301f00bb0dc87cef6
+| | |____d8
+| | | |____6ec157baee2a4b217d0379e437c1b5b0419ffc
+| | |____ab
+| | | |____2391795cf818dfda2bbae33bf498a27f7e4cfa
+| | |____e5
+| | | |____33c30fa74b90f44b1f007c945a4940c41a5f32
+| | |____c7
+| | | |____43f9525d05700fce1ef2306e764c92e0e4a780
+| | |____c0
+| | | |____8e7337e52ba3bb0a787f825413e783b3f5074e
+| | |____c9
+| | | |____0abfd047db1e67a700f3cda3d190522560adbe
+| | |____f2
+| | | |____fedaa20f3ff350ddb9094e9c3b33f32546b2af
+| | |____cf
+| | | |____7a3d2fb8b06891fa7d8a1bcdcc37be1b8d4bb8
+| | |____ca
+| | | |____ce843c0155e639d7a34048a248230cc4fe7c29
+| | |____fe
+| | | |____9cd88c109278df24fa488062b014491c1c20a2
+| | |____c8
+| | | |____541f970836f3c00263c33efb1df32e7f099f4d
+| | | |____4c256f035d555508d818b167f9a467250c2d98
+| | |____ed
+| | | |____865f5c8a033553a618ad76fb3f48812f0a252e
+| | |____c1
+| | | |____2444c71c0acef07bb067eb95cf83ebee625d6a
+| | | |____6f435da6d979d3f3a5568a9afd9c96c29ce8ee
+| | | |____7d93159e5e16f914f568c5d5109dd6141e02eb
+| | |____4e
+| | | |____6f9b240983c394e46218f8b7a5a8bdd678b476
+| | |____27
+| | | |____a41de8c4d62fea856b52dadf5645e8ed7af216
+| | |____pack
+| | |____7c
+| | | |____023e7001417364d751e812e6fafcd79b8cd8b9
+| | |____16
+| | | |____580a46c41cbae7255ff9cde0c61ba3fc4020c6
+| | | |____7ca72c46dac6e48131f18053199332f13f699c
+| | |____42
+| | | |____e829f7ec2fcc0168f51887946384e13bd95aff
+| | |____89
+| | | |____7cb51e228ff59c76213e6af2e6fb8c191801bc
+| | |____8f
+| | | |____08d992c1982cd7e8c3ec161ab50efa2ae446ed
+| | | |____a04e16db417f5a10df617778658b34e900ad74
+| | |____8a
+| | | |____3e5bba27b986917d347d42b64c6542639be916
+| | |____4c
+| | | |____babae24e29226e4ea52948e809f8c085dc243a
+| | |____4d
+| | | |____cb10c343caca1e8ac5085d0efe361bf5929cfa
+| | | |____f10238163ad7104b9af8d2ac20e1f43f1411a7
+| | |____75
+| | | |____91e71a5b0ede830f219628c0d98fb9e4bcb10c
+| | |____72
+| | | |____fad2678774b0eb8aac78f63f24eb355cb1e7b7
+| | | |____a8ab644aba39284df33a64fe449f44c5e45e9a
+| | |____2f
+| | | |____1f09e6226f1d3ce0665259bef51b79a33680fd
+| | |____38
+| | | |____cd8cbdaabd5e13c12fcadc62e10c22d5904015
+| | |____6e
+| | | |____64ccc8595e93b003dddbecfbe4fdb1ceb01d78
+| | | |____b9985a281a3c0293d878bb0be13ee1709b27ef
+| | |____9a
+| | | |____88f69be27af2e117dc971046ac208a3cc893e8
+| | |____09
+| | | |____25e5148a7d06c9eae8d0ffc65b882ec9474e4c
+| | |____info
+| | |____96
+| | | |____0503098e50911ac703558cdc3d936cf3bc4403
+| | |____54
+| | | |____dd99fe4f8df596ebb5cff05cedce8566bd6ce3
+| | |____53
+| | | |____4e232c19880a15acc74c9b1fd0f4146d384b8e
+| | | |____e3bf9267bc3dfc12f344f4fce613505437fd67
+| | |____3f
+| | | |____4afc34835cbbcc965f1d25bdcc520bb2bbf92e
+| | |____5e
+| | | |____d9317631d9689e2eb95d09a6cd83c48da88eef
+| | |____5b
+| | | |____e6d2fb46477fed3a165f3ab1ba595a428558c7
+| | |____01
+| | | |____c6e105ce43e14e192ddcc822a005f48348f0bf
+| | |____99
+| | | |____4427950dd8e99def8bfe076c3af8efee3f1cc8
+| | |____52
+| | | |____c35e413344721fed626b524ddb50f7b04032c5
+| | |____55
+| | | |____cfd4dcb16205d668915b6eea3ff56fefc2d21b
+| | |____bf
+| | | |____8bcc985cba3d6804802dfbe59446d1da122b63
+| | |____a0
+| | | |____2eb59db9859da09db4a9d38b66c99360eefec8
+| | | |____b1cc8e43b367b4925a29194b4e393fd444664f
+| | |____b1
+| | | |____c58a3a42840d5a9774d7aa3b05116aa3440b93
+| | |____dd
+| | | |____dd44e8dabe7e1df835b9811b8aab0ef0dd32da
+| | |____dc
+| | | |____4a3f4d68227d76517cbc4c55efffb608c8fc47
+| | | |____b2f56dca27a1de37590f6273d6b4966ab2125a
+| | |____b6
+| | | |____db80f347eaac15095e14c85757d8a224e6a200
+| | | |____3db61bf5a47c57b1e43418354855dbb1490ac7
+| | |____d5
+| | | |____f21548ba455f63f8fca55e2e1c6ecf2c8e9602
+| | |____b7
+| | | |____85e86e61881da8b6aedca58e9e901928b1208b
+| | |____b0
+| | | |____1a694b830faabc89a84bafee2d3b5aa63dda84
+| | |____a1
+| | | |____f6cf1cd36e8bfe34e028cea0daa92c6a8e88cc
+| | |____c3
+| | | |____15a84dfea95acacf16029531306d595a86e986
+| | |____e1
+| | | |____ff73221765a9f4e8d3da74ea8650c3c4caecaf
+| | | |____82d346ac0b32fcc98e1c9a67ce1ec448838a1a
+| | |____cc
+| | | |____a55fcc070f2105886c30f2f5b09aaf51212c12
+| | |____f7
+| | | |____7e8c388e9f5c1dd23b4a6e4b6c138e63d8811b
+| | |____ff
+| | | |____21b594ac3dd3c7d90cf601a9a00e21b632baaa
+| | |____e9
+| | | |____ac58ddb4edeacbdfc6f2fbd8ad169687ff5667
+| | | |____361d6a94c1e50bc83347e28634cc2317f9284f
+| | | |____09dd8bb0d22a62b0892e774d50eb1520bd8c38
+| | |____46
+| | | |____9105b251f3a0558a0aa75e3b44d5cb02552f94
+| | |____2c
+| | | |____1c35e51c0e1458c9f12c276a1ae00334cbec64
+| | |____79
+| | | |____c4e2360d362b33d342caea29e8a0e8d996b828
+| | |____41
+| | | |____739b0ff89bc2b6582b148d5cb855546342c64c
+| | |____48
+| | | |____71a9a6cb025f69f737b3f0b786c7bbfb71e7a2
+| | |____70
+| | | |____b3723a24ddfaac4ae0ea2b913afe84b68ce2f2
+| | |____1e
+| | | |____efb75fac460a78f0149ba1dfe90519df3b9594
+| | |____4a
+| | | |____d455cfc93b48af1823af3ce091cc9129cc9f3d
+| | |____23
+| | | |____ac53c1c1939d474c319683d7d8af24bccc0f0b
+| | |____8d
+| | | |____1cec783393c68896fc73e02bd647402be6afaa
+| | |____12
+| | | |____85434fd4f8d9f99399d951cdec60607689ea2c
+| | |____8c
+| | | |____23886d18987357353f36767d87cc1e844f33d6
+| | |____71
+| | | |____39ec3d092f2acd9983bbfc99785126fe14796f
+| | | |____8d10f4228caf56a846f85865c637e054e250c8
+| | |____76
+| | | |____bca71c49b4ada0b198bbdadeee14a1a616d242
+| | |____1c
+| | | |____2806b422440de20ba95103c6bb1d8814bcf95a
+| | |____40
+| | | |____90bdb7c561b1a3dfecd81961a2cae15476b5e5
+| | |____2e
+| | | |____fcbdfa5f9e8db4963dd85a80cffd1211f9d337
+| | |____2b
+| | | |____c450bbe201434a74011aa27122bc1751d13e9c
+| | |____47
+| | | |____210f438c5018d6ac7a2fba8369f5d24342bcb1
+| | |____8b
+| | | |____22030bd4e738a68aa5ab226efc5c7e2d8fd18f
+| | | |____5eb878924ab7f38dc3fe11817030a207998aa4
+| | |____13
+| | | |____59101c0d579cb490f94c8be8691ba2f0f59566
+| | |____8e
+| | | |____e8df4573358f7e94a58effe80c8710210a234e
+| |____HEAD
+| |____info
+| | |____exclude
+| |____logs
+| | |____HEAD
+| | |____refs
+| | | |____heads
+| | | | |____main
+| | | |____remotes
+| | | | |____origin
+| | | | | |____main
+| |____description
+| |____hooks
+| | |____commit-msg.sample
+| | |____pre-rebase.sample
+| | |____pre-commit.sample
+| | |____applypatch-msg.sample
+| | |____fsmonitor-watchman.sample
+| | |____pre-receive.sample
+| | |____prepare-commit-msg.sample
+| | |____post-update.sample
+| | |____pre-merge-commit.sample
+| | |____pre-applypatch.sample
+| | |____pre-push.sample
+| | |____update.sample
+| | |____push-to-checkout.sample
+| |____refs
+| | |____heads
+| | | |____main
+| | |____tags
+| | |____remotes
+| | | |____origin
+| | | | |____main
+| |____index
+| |____COMMIT_EDITMSG

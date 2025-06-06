@@ -5,7 +5,6 @@ $pdo = connect();
 /* 下拉資料 */
 $brands     = $pdo->query("SELECT id,name FROM brands ORDER BY name")->fetchAll();
 $categories = $pdo->query("SELECT id,name FROM categories ORDER BY name")->fetchAll();
-$series     = $pdo->query("SELECT id,name FROM series ORDER BY name")->fetchAll();
 
 $page_title = '新增商品';
 include __DIR__.'/partials/header.php';
@@ -36,9 +35,7 @@ include __DIR__.'/partials/header.php';
       <label class="form-label">系列</label>
       <select name="series_id" class="form-select">
         <option value="">--無--</option>
-        <?php foreach ($series as $s): ?>
-          <option value="<?= $s['id'] ?>"><?= htmlspecialchars($s['name']) ?></option>
-        <?php endforeach;?>
+        <!-- 將由 JS 根據品牌載入 -->
       </select>
     </div>
   </div>
@@ -55,22 +52,21 @@ include __DIR__.'/partials/header.php';
     </div>
   </div>
 
-  <!-- 六欄價格一行（可在原檔案價格區改成）-->
-<div class="row mb-3">
-  <div class="col-6 col-lg-2"><label class="form-label">建議售</label><input name="price_msrp" class="form-control"></div>
-  <div class="col-6 col-lg-2"><label class="form-label">VIP</label><input name="price_vip" class="form-control"></div>
-  <div class="col-6 col-lg-2"><label class="form-label">VVIP</label><input name="price_vvip" class="form-control"></div>
-  <div class="col-6 col-lg-2"><label class="form-label">批發</label><input name="price_wholesale" class="form-control"></div>
-  <div class="col-6 col-lg-2"><label class="form-label">成本</label><input name="price_cost" class="form-control"></div>
-</div>
-
-  <!-- 成本 + 圖片 + 狀態 -->
+  <!-- 六欄價格一行 -->
   <div class="row mb-3">
-    <div class="col-md-3"><label class="form-label">成本</label><input name="price_cost" class="form-control"></div>
+    <div class="col-6 col-lg-2"><label class="form-label">建議售價</label><input name="price_msrp" class="form-control"></div>
+    <div class="col-6 col-lg-2"><label class="form-label">VIP</label><input name="price_vip" class="form-control"></div>
+    <div class="col-6 col-lg-2"><label class="form-label">VVIP</label><input name="price_vvip" class="form-control"></div>
+    <div class="col-6 col-lg-2"><label class="form-label">批發</label><input name="price_wholesale" class="form-control"></div>
+    <div class="col-6 col-lg-2"><label class="form-label">成本</label><input name="price_cost" class="form-control"></div>
+  </div>
+
+  <!-- 圖片 / 狀態 -->
+  <div class="row mb-3">
     <div class="col-md-6"><label class="form-label">封面圖</label><input type="file" name="cover_img" class="form-control"></div>
     <div class="col-md-3 d-flex align-items-end">
       <div class="form-check">
-        <input type="checkbox" name="status" value="1" id="st" class="form-check-input" checked>
+        <input type="checkbox" name="status" value="active" ... >
         <label for="st" class="form-check-label">上架</label>
       </div>
     </div>
@@ -85,4 +81,31 @@ include __DIR__.'/partials/header.php';
   <button class="btn btn-success">提交</button>
   <a href="index.php" class="btn btn-secondary">返回</a>
 </form>
+
+<!-- ✅ 加入 JS 放在 footer.php 前或內部 -->
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const brandSelect = document.querySelector('[name="brand_id"]');
+  const seriesSelect = document.querySelector('[name="series_id"]');
+
+  brandSelect.addEventListener('change', function () {
+    const brandId = this.value;
+    seriesSelect.innerHTML = '<option value="">--無--</option>';
+
+    if (!brandId) return;
+
+    fetch(`edit_basic_modal.php?brand_id_only=1&brand_id=${brandId}`)
+      .then(res => res.json())
+      .then(seriesList => {
+        seriesList.forEach(s => {
+          const opt = document.createElement('option');
+          opt.value = s.id;
+          opt.textContent = s.name;
+          seriesSelect.appendChild(opt);
+        });
+      });
+  });
+});
+</script>
+
 <?php include __DIR__.'/partials/footer.php'; ?>
