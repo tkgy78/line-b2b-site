@@ -198,7 +198,11 @@ include __DIR__ . '/partials/header.php';
             <td class="text-nowrap">
               <!-- 桌機版：編輯／詳情／刪除 -->
               <div class="d-none d-md-inline">
-                <a href="edit_basic.php?id=<?= $p['id'] ?>" class="btn btn-sm btn-warning">編輯</a>
+                <a href="javascript:void(0);"
+                  class="btn btn-sm btn-warning btn-edit-modal"
+                  data-id="<?= $p['id'] ?>">
+                  編輯
+                </a>
                 <a href="edit_detail.php?id=<?= $p['id'] ?>" class="btn btn-sm btn-secondary">詳情</a>
                 <a href="delete.php?id=<?= $p['id'] ?>" class="btn btn-sm btn-danger" onclick="return confirm('確認要刪除這項商品嗎？')">刪除</a>
               </div>
@@ -238,7 +242,11 @@ include __DIR__ . '/partials/header.php';
         <li class="list-group-item"><strong>庫存：</strong>${data.stock}</li>
       </ul>`;
     foot.innerHTML = `
-      <a href="edit_basic.php?id=${data.id}" class="btn btn-primary">編輯</a>
+      <a href="javascript:void(0);" 
+        class="btn btn-sm btn-warning btn-edit-basic" 
+        data-id="<?= $p['id'] ?>">
+        編輯
+      </a>
       <a href="detail/view.php?id=${data.id}" class="btn btn-info">詳情</a>
       <button class="btn btn-secondary" data-bs-dismiss="modal">關閉</button>`;
   });
