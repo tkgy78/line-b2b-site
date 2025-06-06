@@ -12,4 +12,10 @@
     }
   </style>
 </head>
+<script src="https://cdn.ckeditor.com/4.22.1/standard/ckeditor.js"></script>
+<script>
+  if (document.querySelector('#description')) {
+    CKEDITOR.replace('description', { height: 300 });
+  }
+</script>
 <body class="p-3">
