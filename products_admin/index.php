@@ -187,7 +187,8 @@ include __DIR__ . '/partials/header.php';
 
             <!-- 狀態（桌機）-->
             <td class="d-none d-md-table-cell">
-              <?= $p['status'] ? '<span class="badge bg-success">上架</span>'
+              <?= $p['status'] === 'active'
+                              ? '<span class="badge bg-success">上架</span>'
                               : '<span class="badge bg-secondary">下架</span>' ?>
             </td>
 

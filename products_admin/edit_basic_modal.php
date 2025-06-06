@@ -128,7 +128,8 @@ $categories = $pdo->query("SELECT id, name FROM categories ORDER BY name")->fetc
   </div>
 </div>
 
-  <div class="text-end">
-    <button type="button" class="btn btn-success" id="btn-save-basic">儲存變更</button>
-  </div>
+  <!-- 最下方按鈕 -->
+<div class="text-end">
+  <button type="button" class="btn btn-success" id="btn-save-basic">儲存變更</button>
+</div>
 </form>
