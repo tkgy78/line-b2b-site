@@ -5,7 +5,7 @@ $pdo = connect();
 // ✅ 若是 AJAX 要求系列清單（根據品牌）
 if (isset($_GET['brand_id_only']) && $_GET['brand_id_only'] == '1') {
   $brand_id = $_GET['brand_id'] ?? 0;
-  $stmt = $pdo->prepare("SELECT id, name FROM series WHERE brand_id = ?");
+  $stmt = $pdo->prepare("SELECT id, name FROM series WHERE brand_id = ? ORDER BY display_order ASC, name");
   $stmt->execute([$brand_id]);
   echo json_encode($stmt->fetchAll());
   exit;
@@ -35,7 +35,7 @@ foreach ($raw_prices as $p) {
   $prices[$p['price_type']] = $p['price'];
 }
 
-// 3. 撈出品牌與分類（系列會根據品牌動態載入）
+// 3. 撈出品牌與分類
 $brands     = $pdo->query("SELECT id, name FROM brands ORDER BY name")->fetchAll();
 $categories = $pdo->query("SELECT id, name FROM categories ORDER BY name")->fetchAll();
 ?>
@@ -73,16 +73,18 @@ $categories = $pdo->query("SELECT id, name FROM categories ORDER BY name")->fetc
       <label class="form-label">系列</label>
       <select name="series_id" class="form-select">
         <option value="">--無--</option>
-        <?php if (!empty($product['series_id'])): ?>
-          <?php
-          $stmt = $pdo->prepare("SELECT id, name FROM series WHERE id = ?");
-          $stmt->execute([$product['series_id']]);
-          $s = $stmt->fetch();
-          ?>
-          <?php if ($s): ?>
-            <option value="<?= $s['id'] ?>" selected><?= htmlspecialchars($s['name']) ?></option>
-          <?php endif; ?>
-        <?php endif; ?>
+        <?php
+        if (!empty($product['brand_id'])) {
+          $stmt = $pdo->prepare("SELECT id, name FROM series WHERE brand_id = ? ORDER BY display_order ASC, name");
+          $stmt->execute([$product['brand_id']]);
+          $seriesList = $stmt->fetchAll();
+
+          foreach ($seriesList as $s) {
+            $selected = ($s['id'] == $product['series_id']) ? 'selected' : '';
+            echo "<option value=\"{$s['id']}\" $selected>" . htmlspecialchars($s['name']) . "</option>";
+          }
+        }
+        ?>
       </select>
     </div>
   </div>
@@ -109,27 +111,26 @@ $categories = $pdo->query("SELECT id, name FROM categories ORDER BY name")->fetc
   </div>
 
   <!-- 簡述 / 庫存 / 狀態 -->
-<div class="row mb-3">
-  <div class="col-md-9">
-    <label class="form-label">商品簡述</label>
-    <textarea name="short_desc" rows="3" class="form-control"><?= htmlspecialchars($product['short_desc']) ?></textarea>
-  </div>
-  <div class="col-md-3">
-    <label class="form-label">庫存數量</label>
-    <input type="number" name="stock_quantity" class="form-control" value="<?= $product['stock_quantity'] ?>">
+  <div class="row mb-3">
+    <div class="col-md-9">
+      <label class="form-label">商品簡述</label>
+      <textarea name="short_desc" rows="3" class="form-control"><?= htmlspecialchars($product['short_desc']) ?></textarea>
+    </div>
+    <div class="col-md-3">
+      <label class="form-label">庫存數量</label>
+      <input type="number" name="stock_quantity" class="form-control" value="<?= $product['stock_quantity'] ?>">
 
-    <!-- ✅ 正確 checkbox 結構 -->
-    <div class="form-check mt-2">
-      <input type="hidden" name="status" value="inactive">
-      <input class="form-check-input" type="checkbox" name="status" value="active" id="st"
-        <?= $product['status'] === 'active' ? 'checked' : '' ?>>
-      <label class="form-check-label" for="st">上架</label>
+      <!-- 上架狀態 -->
+      <div class="form-check mt-2">
+        <input type="hidden" name="status" value="inactive">
+        <input class="form-check-input" type="checkbox" name="status" value="active" id="st"
+          <?= $product['status'] === 'active' ? 'checked' : '' ?>>
+        <label class="form-check-label" for="st">上架</label>
+      </div>
     </div>
   </div>
-</div>
 
-  <!-- 最下方按鈕 -->
-<div class="text-end">
-  <button type="button" class="btn btn-success" id="btn-save-basic">儲存變更</button>
-</div>
+  <div class="text-end">
+    <button type="button" class="btn btn-success" id="btn-save-basic">儲存變更</button>
+  </div>
 </form>
