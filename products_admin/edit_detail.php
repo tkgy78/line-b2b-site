@@ -75,7 +75,7 @@ include __DIR__ . '/partials/header.php';
 </form>
 
 <!-- CKEditor -->
-<script src="https://cdn.ckeditor.com/4.25.1-lts/standard/ckeditor.js"></script>
+<script src="/line_b2b/vendor/ckeditor/ckeditor.js"></script>
 <script>
   CKEDITOR.replace('detailed_desc');
 </script>

@@ -91,12 +91,12 @@ $productImages = $stmt->fetchAll();
 </form>
 
 <!-- CKEditor 與分頁 JS -->
-<script src="https://cdn.ckeditor.com/4.25.1-lts/standard/ckeditor.js"></script>
+<script src="/line_b2b/vendor/ckeditor/ckeditor.js"></script>
 <script>
   // CKEditor 初始化
   setTimeout(() => {
     if (document.querySelector('#detailed_desc')) {
-      CKEDITOR.replace('detailed_desc', { height: 300 });
+      CKEDITOR.replace('detailed_desc', { height: 300,removePlugins: 'upgrade' });
     }
   }, 200);
 
