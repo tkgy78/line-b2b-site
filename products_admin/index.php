@@ -55,9 +55,19 @@ include __DIR__ . '/partials/header.php';
     <div class="col-6 col-md-4">
       <h1 class="h3 mb-0">商品列表</h1>
     </div>
-    <div class="col-6 col-md-4 text-end d-none d-md-block">
-      <a href="create.php" class="btn btn-success"><i class="bi bi-plus-lg"></i> 新增商品</a>
-    </div>
+    <div class="col-12 col-md-4 mt-2 mt-md-0 text-md-end">
+  <div class="d-flex flex-wrap justify-content-md-end gap-2">
+    <a href="create.php" class="btn btn-success">
+      <i class="bi bi-plus-lg"></i> 新增商品
+    </a>
+    <a href="export_csv.php" class="btn btn-secondary">
+      <i class="bi bi-download"></i> 匯出 CSV
+    </a>
+    <button class="btn btn-primary" id="btn-open-import-modal">
+      <i class="bi bi-upload"></i> 匯入 CSV
+    </button>
+  </div>
+</div>
     <div class="col-12 col-md-4 mt-2 mt-md-0 text-md-end">
       <form class="d-inline" method="get" action="index.php">
         <select name="brand_id" class="form-select form-select-sm d-inline w-auto" onchange="this.form.submit()">
@@ -127,42 +137,53 @@ include __DIR__ . '/partials/header.php';
   </div>
 </div>
 
+<!-- 匯入 CSV 的 Modal -->
+<div class="modal fade" id="importCsvModal" tabindex="-1">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">匯入商品 CSV</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div id="import-modal-body" class="text-center text-muted">載入中...</div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <?php include __DIR__ . '/partials/footer.php'; ?>
+<script src="/line_b2b/vendor/ckeditor/ckeditor.js"></script>
 <script src="/line_b2b/vendor/ckeditor/ckeditor.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', () => {
   const contentArea = document.querySelector('#modal-tab-content');
 
-  // 點擊「編輯」按鈕時載入基本資料頁
+  // 編輯商品 Modal 控制
   document.querySelectorAll('.btn-edit-modal').forEach(btn => {
     btn.addEventListener('click', async () => {
       window.currentEditProductId = btn.dataset.id;
       const modal = new bootstrap.Modal(document.getElementById('editModal'));
       modal.show();
-
-      const res = await fetch(`/line_b2b/products_admin/edit_basic_modal.php?id=${btn.dataset.id}`);
+      const res = await fetch('/line_b2b/products_admin/edit_basic_modal.php?id=' + btn.dataset.id);
       const html = await res.text();
       contentArea.innerHTML = html;
 
-      // 確保 Basic Tab 為 active
       const tabLinks = document.querySelectorAll('#editModal .nav-link');
       tabLinks.forEach(l => l.classList.remove('active'));
       document.querySelector('[data-tab="basic"]').classList.add('active');
 
-      // 修正 alert 跳出兩次的問題：替換按鈕以清除舊事件
       setTimeout(() => {
         const oldBtn = document.querySelector('#btn-save-basic');
         if (oldBtn) {
           const newBtn = oldBtn.cloneNode(true);
           oldBtn.parentNode.replaceChild(newBtn, oldBtn);
-
           newBtn.addEventListener('click', () => {
             const form = document.querySelector('#form-basic');
             if (!form) return alert('找不到表單');
             const formData = new FormData(form);
             fetch('/line_b2b/products_admin/update_product_basic.php', {
-              method: 'POST',
-              body: formData
+              method: 'POST', body: formData
             })
             .then(res => res.text())
             .then(msg => {
@@ -181,23 +202,18 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // 處理 Modal 中 tab 切換
+  // Modal 分頁 CKEditor 切換
   document.addEventListener('click', async (e) => {
     const link = e.target.closest('#editModal .nav-link');
     if (!link) return;
     e.preventDefault();
-
-    const tabLinks = document.querySelectorAll('#editModal .nav-link');
-    tabLinks.forEach(l => l.classList.remove('active'));
-    link.classList.add('active');
-
     const tab = link.dataset.tab;
     const pid = window.currentEditProductId;
-    const url = `./${tab === 'basic' ? 'edit_basic_modal.php' : 'edit_detail_modal.php'}?id=${pid}`;
-    const res = await fetch(url);
-    contentArea.innerHTML = await res.text();
+    const res = await fetch('/line_b2b/products_admin/' + (tab === 'basic' ? 'edit_basic_modal.php' : 'edit_detail_modal.php') + '?id=' + pid);
+    document.querySelector('#modal-tab-content').innerHTML = await res.text();
+    document.querySelectorAll('#editModal .nav-link').forEach(l => l.classList.remove('active'));
+    link.classList.add('active');
 
-    // 若為 detail tab，載入 CKEditor
     if (tab === 'detail') {
       setTimeout(() => {
         if (document.querySelector('#detailed_desc')) {
@@ -205,6 +221,26 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }, 100);
     }
+  });
+
+  // 點擊匯入 CSV 按鈕載入 modal
+  document.getElementById('btn-open-import-modal').addEventListener('click', () => {
+    const modal = new bootstrap.Modal(document.getElementById('importCsvModal'));
+    modal.show();
+
+    // 強制重新載入 import_modal.php，避免快取
+    fetch('import_modal.php?ts=' + Date.now())
+      .then(res => {
+        if (!res.ok) throw new Error('載入匯入表單失敗');
+        return res.text();
+      })
+      .then(html => {
+        document.getElementById('import-modal-body').innerHTML = html;
+      })
+      .catch(err => {
+        document.getElementById('import-modal-body').innerHTML =
+          `<div class="alert alert-danger">載入表單失敗：${err.message}</div>`;
+      });
   });
 });
 </script>
