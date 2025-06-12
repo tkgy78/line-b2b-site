@@ -1,4 +1,8 @@
 <?php
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
+?>
+<?php
 require_once __DIR__ . '/../db.php';
 $pdo = connect();
 
@@ -40,7 +44,7 @@ $brands     = $pdo->query("SELECT id, name FROM brands ORDER BY name")->fetchAll
 $categories = $pdo->query("SELECT id, name FROM categories ORDER BY name")->fetchAll();
 ?>
 
-<form id="form-basic" class="p-3">
+<form id="form-basic" class="p-3" enctype="multipart/form-data">
   <input type="hidden" name="id" value="<?= $product['id'] ?>">
 
   <!-- 品牌 / 分類 / 系列 -->
@@ -99,6 +103,17 @@ $categories = $pdo->query("SELECT id, name FROM categories ORDER BY name")->fetc
       <label class="form-label">SKU (編號)</label>
       <input type="text" name="sku" class="form-control" value="<?= htmlspecialchars($product['sku']) ?>">
     </div>
+  </div>
+
+  <!-- 封面圖片 -->
+  <div class="mb-3">
+    <label class="form-label">封面圖（若要更換）</label>
+    <input type="file" name="cover_img" class="form-control">
+    <?php if (!empty($product['cover_img'])): ?>
+      <div class="mt-2">
+        <img src="/<?= htmlspecialchars($product['cover_img']) ?>" class="img-thumbnail" style="max-width: 150px;">
+      </div>
+    <?php endif; ?>
   </div>
 
   <!-- 價格 -->

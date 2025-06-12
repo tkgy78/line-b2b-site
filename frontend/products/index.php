@@ -15,6 +15,18 @@ $stmt = $pdo->query("
 ");
 $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+// 如果有需要備援圖片
+$product_ids = array_column($products, 'id');
+$product_images = [];
+if (!empty($product_ids)) {
+  $in = implode(',', array_fill(0, count($product_ids), '?'));
+  $img_stmt = $pdo->prepare("SELECT product_id, image_url FROM product_images WHERE product_id IN ($in) GROUP BY product_id");
+  $img_stmt->execute($product_ids);
+  foreach ($img_stmt->fetchAll(PDO::FETCH_ASSOC) as $img) {
+    $product_images[$img['product_id']] = $img['image_url'];
+  }
+}
+
 // 分組：品牌 → 系列
 $grouped = [];
 foreach ($products as $p) {
@@ -58,8 +70,16 @@ include '../partials/header.php';
           <?php foreach ($items as $p): ?>
             <tr>
               <td>
-                <?php if (!empty($p['cover_img'])): ?>
-                  <img src="/<?= htmlspecialchars($p['cover_img']) ?>" alt="" class="img-thumbnail" style="max-width: 70px;">
+                <?php
+                  $img_path = '';
+                  if (!empty($p['cover_img'])) {
+                    $img_path = $p['cover_img'];
+                  } elseif (!empty($product_images[$p['id']])) {
+                    $img_path = $product_images[$p['id']];
+                  }
+                ?>
+                <?php if ($img_path): ?>
+                  <img src="/uploads/<?= htmlspecialchars($img_path) ?>" alt="封面圖" class="img-thumbnail" style="max-width: 70px;">
                 <?php else: ?>
                   <span class="text-muted">無圖片</span>
                 <?php endif; ?>
@@ -76,7 +96,6 @@ include '../partials/header.php';
               <?php if (in_array($user_role, ['sales', 'admin'])): ?>
                 <td>
                   <?php
-                    // 業績獎金邏輯範例：VIP 價的 10%
                     $commission = ($p['price_vip'] ?? 0) * 0.1;
                     echo number_format($commission, 0);
                   ?>

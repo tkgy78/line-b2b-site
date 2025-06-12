@@ -80,8 +80,10 @@ $softwareRows = $softwares->fetchAll();
 <div class="container py-5">
   <div class="row">
     <div class="col-md-6">
-      <img src="/<?= htmlspecialchars($mainImage ?: 'uploads/product_files/no-image.png') ?>" class="img-fluid mb-3" alt="主圖">
-      <div class="d-flex flex-wrap gap-2">
+        <?php
+          $mainImagePath = !empty($mainImage) ? htmlspecialchars($mainImage) : 'uploads/product_files/no-image.png';
+        ?>
+        <img src="/<?= $mainImagePath ?>" class="img-fluid mb-3" alt="主圖">      <div class="d-flex flex-wrap gap-2">
         <?php foreach ($gallery as $img): ?>
           <img src="/<?= htmlspecialchars($img) ?>" class="thumb" alt="圖">
         <?php endforeach; ?>

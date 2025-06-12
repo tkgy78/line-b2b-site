@@ -6,19 +6,22 @@ $brand_id    = intval($_POST['brand_id']);
 $category_id = intval($_POST['category_id']);
 $series_id   = ($_POST['series_id'] !== '') ? intval($_POST['series_id']) : null;
 $name        = trim($_POST['name']);
-$model       = $name;              // 自動同步
+$model       = $name;
 $sku         = trim($_POST['sku']);
 $short_desc  = $_POST['short_desc'] ?? '';
-$status      = isset($_POST['status']) ? 1 : 0;
+$status      = isset($_POST['status']) ? 'active' : 'inactive';
 
-/* -------- 封面圖 -------- */
-$cover = 'uploads/product_images/no-image.png';
+/* -------- 封面圖處理 -------- */
+$cover = 'uploads/product_images/no-image.png'; // 預設圖片
 if (!empty($_FILES['cover_img']['name'])) {
     $ext  = strtolower(pathinfo($_FILES['cover_img']['name'], PATHINFO_EXTENSION));
-    $file = uniqid('p_').'.'.$ext;
-    $dest = __DIR__.'/../uploads/product_images/'.$file;
+    $file = uniqid('cover_').'.'.$ext;
+    $destFolder = __DIR__.'/../uploads/products_cover/';
+    if (!is_dir($destFolder)) mkdir($destFolder, 0777, true); // 若資料夾不存在則建立
+    $dest = $destFolder . $file;
+
     if (move_uploaded_file($_FILES['cover_img']['tmp_name'], $dest)) {
-        $cover = 'uploads/product_images/'.$file;
+        $cover = 'uploads/products_cover/'.$file;
     }
 }
 

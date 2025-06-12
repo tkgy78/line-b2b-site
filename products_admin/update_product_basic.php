@@ -1,28 +1,29 @@
 <?php
 require_once __DIR__ . '/../db.php';
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
 $pdo = connect();
 
 // 驗證商品 ID
 $id = $_POST['id'] ?? 0;
+file_put_contents(__DIR__ . '/log_debug.txt', print_r($_POST, true) . "\n\n" . print_r($_FILES, true));
 if (!$id) {
   http_response_code(400);
   echo 'Missing product ID';
   exit;
 }
 
-// 處理欄位
-$brand_id       = $_POST['brand_id'] ?? null;
+// 基本欄位
+$brand_id = isset($_POST['brand_id']) && $_POST['brand_id'] !== '' ? $_POST['brand_id'] : null;
 $category_id    = $_POST['category_id'] ?? null;
 $series_id      = ($_POST['series_id'] ?? '') !== '' ? $_POST['series_id'] : null;
 $name           = $_POST['name'] ?? '';
 $sku            = $_POST['sku'] ?? '';
 $short_desc     = $_POST['short_desc'] ?? '';
 $stock_quantity = $_POST['stock_quantity'] ?? 0;
+$status         = ($_POST['status'] ?? '') === 'active' ? 'active' : 'inactive';
 
-// ✅ 修正 checkbox 的邏輯：若沒勾選就變成 inactive
-$status = ($_POST['status'] ?? '') === 'active' ? 'active' : 'inactive';
-
-// 價格欄位
+// 價格
 $price_types = ['msrp', 'vip', 'vvip', 'wholesale', 'cost'];
 $prices = [];
 foreach ($price_types as $type) {
@@ -32,24 +33,52 @@ foreach ($price_types as $type) {
   }
 }
 
+// ✅ 圖片處理（如有上傳則覆蓋）
+$cover_sql_fragment = '';
+$cover_sql_params = [];
+
+if (!empty($_FILES['cover_img']['name'])) {
+  $ext  = strtolower(pathinfo($_FILES['cover_img']['name'], PATHINFO_EXTENSION));
+  $file = uniqid('cover_') . '.' . $ext;
+  $destFolder = __DIR__ . '/../uploads/products_cover/';
+  if (!is_dir($destFolder)) mkdir($destFolder, 0777, true);
+  $dest = $destFolder . $file;
+
+  if (move_uploaded_file($_FILES['cover_img']['tmp_name'], $dest)) {
+    $cover_path = 'uploads/products_cover/' . $file;
+    $cover_sql_fragment = ", cover_img = ?";
+    $cover_sql_params[] = $cover_path;
+  }
+}
+
 try {
   $pdo->beginTransaction();
 
-  // 更新 products
-  $stmt = $pdo->prepare("UPDATE products SET brand_id=?, category_id=?, series_id=?, name=?, sku=?, short_desc=?, stock_quantity=?, status=?, updated_at=NOW() WHERE id=?");
-  $stmt->execute([
+  // 更新 products（動態補上 cover_img）
+  $sql = "UPDATE products 
+          SET brand_id=?, category_id=?, series_id=?, name=?, sku=?, short_desc=?, stock_quantity=?, status=?, updated_at=NOW()
+          $cover_sql_fragment
+          WHERE id=?";
+  $params = [
     $brand_id, $category_id, $series_id,
-    $name, $sku, $short_desc, $stock_quantity,
-    $status, $id
-  ]);
+    $name, $sku, $short_desc, $stock_quantity, $status
+  ];
+  $params = array_merge($params, $cover_sql_params, [$id]);
+  $stmt = $pdo->prepare($sql);
+  $stmt->execute($params);
 
-  // 刪除舊價格
-  $stmt = $pdo->prepare("DELETE FROM prices WHERE product_id = ?");
-  $stmt->execute([$id]);
-
-  // 插入新價格
+  // ✅ 僅將有變動的價格欄位設為歷史
   if (!empty($prices)) {
-    $stmt = $pdo->prepare("INSERT INTO prices (product_id, price_type, price, start_at) VALUES (?, ?, ?, NOW())");
+    $stmt = $pdo->prepare("UPDATE prices 
+                           SET is_latest = 0, end_at = NOW() 
+                           WHERE product_id = ? AND price_type = ? AND is_latest = 1");
+    foreach ($prices as $type => $value) {
+      $stmt->execute([$id, $type]);
+    }
+
+    // ✅ 寫入新的價格
+    $stmt = $pdo->prepare("INSERT INTO prices (product_id, price_type, price, start_at, is_latest, end_at)
+                           VALUES (?, ?, ?, NOW(), 1, NULL)");
     foreach ($prices as $type => $value) {
       $stmt->execute([$id, $type, $value]);
     }

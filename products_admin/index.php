@@ -1,18 +1,15 @@
 <?php
-// products_admin/index.php
-
-require_once __DIR__ . '/../db.php';  // 載入 db.php，請確保 connect() 函式正確
+require_once __DIR__ . '/../db.php';
 $pdo = connect();
 
-// 取得品牌
+// 取得品牌列表
 $brandsStmt = $pdo->query("SELECT id, name FROM brands ORDER BY name ASC");
 $allBrands = $brandsStmt->fetchAll(PDO::FETCH_ASSOC);
 
-// 處理品牌篩選
-$filterBrandId = isset($_GET['brand_id']) && is_numeric($_GET['brand_id'])
-               ? intval($_GET['brand_id']) : null;
+// 品牌篩選條件
+$filterBrandId = isset($_GET['brand_id']) && is_numeric($_GET['brand_id']) ? intval($_GET['brand_id']) : null;
 
-// 撈商品與價格資料
+// 撈商品資料與價格
 $sql = "
   SELECT 
     p.id, p.sku, p.name AS product_name, p.cover_img, p.brand_id,
@@ -22,15 +19,13 @@ $sql = "
   JOIN brands b ON b.id = p.brand_id
   LEFT JOIN prices pr ON pr.product_id = p.id
   " . (
-    $filterBrandId
-    ? "ORDER BY (p.brand_id = {$filterBrandId}) DESC, p.id DESC"
-    : "ORDER BY p.id DESC"
+    $filterBrandId ? "ORDER BY (p.brand_id = {$filterBrandId}) DESC, p.id DESC" : "ORDER BY p.id DESC"
   );
 
 $stmt = $pdo->query($sql);
 $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-// 整理商品
+// 整理商品資料為陣列格式
 $products = [];
 foreach ($rows as $r) {
     $id = $r['id'];
@@ -66,9 +61,8 @@ include __DIR__ . '/partials/header.php';
     </div>
     <div class="col-12 col-md-4 mt-2 mt-md-0 text-md-end">
       <form class="d-inline" method="get" action="index.php">
-        <select name="brand_id" class="form-select form-select-sm d-inline w-auto"
-                onchange="this.form.submit()">
-          <option value="">— 全部品牌 —</option>
+        <select name="brand_id" class="form-select form-select-sm d-inline w-auto" onchange="this.form.submit()">
+          <option value="">\u2014 全部品牌 \u2014</option>
           <?php foreach ($allBrands as $b): ?>
             <option value="<?= $b['id'] ?>" <?= ($filterBrandId == $b['id']) ? 'selected' : '' ?>>
               <?= htmlspecialchars($b['name']) ?>
@@ -132,7 +126,7 @@ include __DIR__ . '/partials/header.php';
   </div>
 </div>
 
-<!-- 詳細資料 Modal（手機用） -->
+<!-- 📱 手機用詳細 Modal -->
 <div class="modal fade" id="moreModal" tabindex="-1">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
@@ -146,7 +140,7 @@ include __DIR__ . '/partials/header.php';
   </div>
 </div>
 
-<!-- 編輯用 Modal -->
+<!-- 🖥️ 編輯用 Modal -->
 <div class="modal fade" id="editModal" tabindex="-1">
   <div class="modal-dialog modal-xl modal-dialog-centered">
     <div class="modal-content">
@@ -167,9 +161,7 @@ include __DIR__ . '/partials/header.php';
   </div>
 </div>
 
-<!-- CKEditor -->
 <script src="/line_b2b/vendor/ckeditor/ckeditor.js"></script>
-
 <script>
 document.addEventListener('DOMContentLoaded', () => {
   const tabLinks = document.querySelectorAll('#editModal .nav-link');
@@ -182,14 +174,11 @@ document.addEventListener('DOMContentLoaded', () => {
       link.classList.add('active');
       const tab = link.dataset.tab;
       const pid = window.currentEditProductId;
-      const url = tab === 'basic' 
-        ? `edit_basic_modal.php?id=${pid}` 
-        : `edit_detail_modal.php?id=${pid}`;
+      const url = `./${tab === 'basic' ? 'edit_basic_modal.php' : 'edit_detail_modal.php'}?id=${pid}`;
       const res = await fetch(url);
       const html = await res.text();
       contentArea.innerHTML = html;
 
-      // 初始化 CKEditor
       setTimeout(() => {
         if (document.querySelector('#detailed_desc')) {
           CKEDITOR.replace('detailed_desc', { height: 300 });
@@ -202,10 +191,35 @@ document.addEventListener('DOMContentLoaded', () => {
     btn.addEventListener('click', async () => {
       window.currentEditProductId = btn.dataset.id;
       new bootstrap.Modal(document.getElementById('editModal')).show();
-      const res = await fetch(`edit_basic_modal.php?id=${btn.dataset.id}`);
-      document.querySelector('#modal-tab-content').innerHTML = await res.text();
+      const res = await fetch(`/line_b2b/products_admin/edit_basic_modal.php?id=${btn.dataset.id}`);
+      const html = await res.text();
+      contentArea.innerHTML = html;
       tabLinks.forEach(l => l.classList.remove('active'));
       document.querySelector('[data-tab="basic"]').classList.add('active');
+
+      const saveBtn = document.querySelector('#btn-save-basic');
+      if (saveBtn) {
+        saveBtn.addEventListener('click', () => {
+          const form = document.querySelector('#form-basic');
+          const formData = new FormData(form);
+          fetch('/line_b2b/products_admin/update_product_basic.php', {
+            method: 'POST',
+            body: formData
+          })
+            .then(res => res.text())
+            .then(msg => {
+              if (msg.trim() === 'success') {
+                alert('更新成功！');
+                location.reload();
+              } else {
+                alert('更新失敗：' + msg);
+              }
+            })
+            .catch(err => {
+              alert('錯誤：' + err);
+            });
+        });
+      }
     });
   });
 
@@ -233,13 +247,9 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 <script>
-// 修復 Bootstrap Modal 關閉後畫面卡住（backdrop 沒移除）
 document.addEventListener('hidden.bs.modal', function (event) {
-  // 移除 backdrop
   const backdrops = document.querySelectorAll('.modal-backdrop');
   backdrops.forEach(el => el.remove());
-
-  // 移除 body 的 overflow hidden 和 padding
   document.body.classList.remove('modal-open');
   document.body.style.overflow = '';
   document.body.style.paddingRight = '';
