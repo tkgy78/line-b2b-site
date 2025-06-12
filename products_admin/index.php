@@ -49,25 +49,24 @@ foreach ($rows as $r) {
 $page_title = '商品列表';
 include __DIR__ . '/partials/header.php';
 ?>
-
 <div class="container py-3">
   <div class="row mb-3 align-items-center">
     <div class="col-6 col-md-4">
       <h1 class="h3 mb-0">商品列表</h1>
     </div>
     <div class="col-12 col-md-4 mt-2 mt-md-0 text-md-end">
-  <div class="d-flex flex-wrap justify-content-md-end gap-2">
-    <a href="create.php" class="btn btn-success">
-      <i class="bi bi-plus-lg"></i> 新增商品
-    </a>
-    <a href="export_csv.php" class="btn btn-secondary">
-      <i class="bi bi-download"></i> 匯出 CSV
-    </a>
-    <button class="btn btn-primary" id="btn-open-import-modal">
-      <i class="bi bi-upload"></i> 匯入 CSV
-    </button>
-  </div>
-</div>
+      <div class="d-flex flex-wrap justify-content-md-end gap-2">
+        <a href="create.php" class="btn btn-success">
+          <i class="bi bi-plus-lg"></i> 新增商品
+        </a>
+        <a href="export_csv.php" class="btn btn-secondary">
+          <i class="bi bi-download"></i> 匯出 CSV
+        </a>
+        <button class="btn btn-primary" id="btn-open-import-modal">
+          <i class="bi bi-upload"></i> 匯入 CSV
+        </button>
+      </div>
+    </div>
     <div class="col-12 col-md-4 mt-2 mt-md-0 text-md-end">
       <form class="d-inline" method="get" action="index.php">
         <select name="brand_id" class="form-select form-select-sm d-inline w-auto" onchange="this.form.submit()">
@@ -152,27 +151,110 @@ include __DIR__ . '/partials/header.php';
   </div>
 </div>
 
+<!-- 編輯商品 Modal -->
+<div class="modal fade" id="editModal" tabindex="-1">
+  <div class="modal-dialog modal-xl modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">編輯商品</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <!-- ✅ 加上分頁控制 -->
+        <ul class="nav nav-tabs mb-3" id="editModalTab">
+          <li class="nav-item">
+            <a class="nav-link active" href="#" data-tab="basic">基本資訊</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#" data-tab="detail">商品詳情</a>
+          </li>
+        </ul>
+        <!-- 分頁內容載入 -->
+        <div id="modal-tab-content" class="pt-2">載入中...</div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <?php include __DIR__ . '/partials/footer.php'; ?>
-<script src="/line_b2b/vendor/ckeditor/ckeditor.js"></script>
 <script src="/line_b2b/vendor/ckeditor/ckeditor.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', () => {
   const contentArea = document.querySelector('#modal-tab-content');
 
+  // 點擊匯入 CSV 按鈕載入 modal 並綁定提交事件
+  const importBtn = document.getElementById('btn-open-import-modal');
+  importBtn.addEventListener('click', async () => {
+    const modalEl = document.getElementById('importCsvModal');
+    const modal = new bootstrap.Modal(modalEl);
+    modal.show();
+
+    const res = await fetch('import_modal.php?ts=' + Date.now());
+    const html = await res.text();
+    document.getElementById('import-modal-body').innerHTML = html;
+
+    setTimeout(() => {
+      const form = document.getElementById('form-import-csv');
+      if (!form) return;
+
+      form.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        const formData = new FormData(form);
+
+        try {
+          const res = await fetch('import_csv.php', {
+            method: 'POST',
+            body: formData
+          });
+          const text = await res.text();
+          let result;
+
+          try {
+            result = JSON.parse(text);
+          } catch (err) {
+            alert('⚠️ 回傳格式錯誤，請檢查 import_csv.php 是否正確輸出 JSON');
+            return;
+          }
+
+          if (result.success) {
+            alert(result.message || '✅ 匯入成功！');
+            modal.hide();
+            if (history.replaceState) history.replaceState(null, '', location.href);
+            setTimeout(() => location.reload(), 300);
+          } else {
+            let msg = result.message || '❌ 匯入失敗';
+            if (result.errors?.length) {
+              msg += '\n\n錯誤詳情：\n' + result.errors.join('\n');
+            }
+            alert(msg);
+          }
+
+        } catch (err) {
+          alert('❌ 匯入時發生錯誤：' + err.message);
+        }
+      });
+    }, 100);
+  });
+
   // 編輯商品 Modal 控制
   document.querySelectorAll('.btn-edit-modal').forEach(btn => {
     btn.addEventListener('click', async () => {
       window.currentEditProductId = btn.dataset.id;
-      const modal = new bootstrap.Modal(document.getElementById('editModal'));
+      const modalEl = document.getElementById('editModal');
+      const modal = new bootstrap.Modal(modalEl);
       modal.show();
-      const res = await fetch('/line_b2b/products_admin/edit_basic_modal.php?id=' + btn.dataset.id);
+
+      const res = await fetch('edit_basic_modal.php?id=' + btn.dataset.id);
       const html = await res.text();
       contentArea.innerHTML = html;
 
+      // 標記 basic 為 active
       const tabLinks = document.querySelectorAll('#editModal .nav-link');
       tabLinks.forEach(l => l.classList.remove('active'));
-      document.querySelector('[data-tab="basic"]').classList.add('active');
+      const basicLink = document.querySelector('[data-tab="basic"]');
+      if (basicLink) basicLink.classList.add('active');
 
+      // 重綁儲存按鈕
       setTimeout(() => {
         const oldBtn = document.querySelector('#btn-save-basic');
         if (oldBtn) {
@@ -182,7 +264,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const form = document.querySelector('#form-basic');
             if (!form) return alert('找不到表單');
             const formData = new FormData(form);
-            fetch('/line_b2b/products_admin/update_product_basic.php', {
+            fetch('update_product_basic.php', {
               method: 'POST', body: formData
             })
             .then(res => res.text())
@@ -202,15 +284,17 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // Modal 分頁 CKEditor 切換
+  // Modal 分頁控制與 CKEditor 切換初始化
   document.addEventListener('click', async (e) => {
     const link = e.target.closest('#editModal .nav-link');
     if (!link) return;
     e.preventDefault();
     const tab = link.dataset.tab;
     const pid = window.currentEditProductId;
-    const res = await fetch('/line_b2b/products_admin/' + (tab === 'basic' ? 'edit_basic_modal.php' : 'edit_detail_modal.php') + '?id=' + pid);
-    document.querySelector('#modal-tab-content').innerHTML = await res.text();
+    const res = await fetch((tab === 'basic' ? 'edit_basic_modal.php' : 'edit_detail_modal.php') + '?id=' + pid);
+    const html = await res.text();
+    contentArea.innerHTML = html;
+
     document.querySelectorAll('#editModal .nav-link').forEach(l => l.classList.remove('active'));
     link.classList.add('active');
 
@@ -223,78 +307,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // 點擊匯入 CSV 按鈕載入 modal
-  document.getElementById('btn-open-import-modal').addEventListener('click', () => {
-    const modal = new bootstrap.Modal(document.getElementById('importCsvModal'));
-    modal.show();
-
-    // 強制重新載入 import_modal.php，避免快取
-    fetch('import_modal.php?ts=' + Date.now())
-      .then(res => {
-        if (!res.ok) throw new Error('載入匯入表單失敗');
-        return res.text();
-      })
-      .then(html => {
-        document.getElementById('import-modal-body').innerHTML = html;
-      })
-      .catch(err => {
-        document.getElementById('import-modal-body').innerHTML =
-          `<div class="alert alert-danger">載入表單失敗：${err.message}</div>`;
-      });
-  });
-});
-// 點擊匯入 CSV 按鈕載入 modal 並綁定提交事件
-document.getElementById('btn-open-import-modal').addEventListener('click', async () => {
-  const modalEl = document.getElementById('importCsvModal');
-  const modal = new bootstrap.Modal(modalEl);
-  modal.show();
-
-  const res = await fetch('import_modal.php');
-  const html = await res.text();
-  document.getElementById('import-modal-body').innerHTML = html;
-
-  // ⚠️ 在 Modal 載入完畢後再綁定提交事件
-  setTimeout(() => {
-    const form = document.getElementById('form-import-csv');
-    if (!form) return;
-
-    form.addEventListener('submit', async function (e) {
-      e.preventDefault();
-      const formData = new FormData(form);
-
-      try {
-        const res = await fetch('import_csv.php', {
-          method: 'POST',
-          body: formData
-        });
-
-        const text = await res.text();
-        let result;
-
-        try {
-          result = JSON.parse(text);
-        } catch (err) {
-          alert('⚠️ 回傳格式錯誤，請檢查 import_csv.php 是否正確輸出 JSON');
-          return;
-        }
-
-        if (result.success) {
-          alert(result.message || '✅ 匯入成功！');
-          modal.hide();
-          if (history.replaceState) history.replaceState(null, '', location.href);
-          setTimeout(() => location.reload(), 300);
-        } else {
-          let msg = result.message || '❌ 匯入失敗';
-          if (result.errors?.length) {
-            msg += '\n\n錯誤詳情：\n' + result.errors.join('\n');
-          }
-          alert(msg);
-        }
-
-      } catch (err) {
-        alert('❌ 匯入時發生錯誤：' + err.message);
-      }
+  // 修正 Modal 關閉後 backdrop 灰幕未消失 bug
+  const allModals = document.querySelectorAll('.modal');
+  allModals.forEach(modalEl => {
+    modalEl.addEventListener('hidden.bs.modal', () => {
+      document.body.classList.remove('modal-open');
+      const backdrop = document.querySelector('.modal-backdrop');
+      if (backdrop) backdrop.remove();
     });
-  }, 100);
+  });
 });
 </script>

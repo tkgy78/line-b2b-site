@@ -1,18 +1,18 @@
 Array
 (
-    [id] => 21
+    [id] => 97
     [brand_id] => 4
-    [category_id] => 4
+    [category_id] => 5
     [series_id] => 
-    [name] => 1216
-    [sku] => 1216
-    [price_msrp] => 49800.00
-    [price_vip] => 22800.00
-    [price_vvip] => 20800.00
-    [price_wholesale] => 19800.00
-    [price_cost] => 15800.00
-    [price_emma] => 2
-    [short_desc] => hi
+    [name] => DSPA 810 SE
+    [sku] => 112
+    [price_msrp] => 20800.00
+    [price_vip] => 11900.00
+    [price_vvip] => 11900.00
+    [price_wholesale] => 8000.00
+    [price_cost] => 6000.00
+    [price_emma] => 11
+    [short_desc] => 讚
     [stock_quantity] => 0
     [status] => active
 )
