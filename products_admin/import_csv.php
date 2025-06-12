@@ -87,7 +87,7 @@ while (($row = fgetcsv($handle)) !== false) {
     $product_id = $pdo->lastInsertId();
   }
 
-  // 價格比對與新增歷史
+  // 價格邏輯（只在有異動時才新增）
   $priceMap = [
     'msrp'      => $msrp,
     'vip'       => $vip,
@@ -100,11 +100,21 @@ while (($row = fgetcsv($handle)) !== false) {
     if ($val === '') continue;
     $val = floatval($val);
 
-    // 更新原 is_latest = 0
-    $pdo->prepare("UPDATE prices SET is_latest = 0, end_at = NOW() WHERE product_id = ? AND price_type = ? AND is_latest = 1")
-        ->execute([$product_id, $type]);
+    // 查詢舊價格
+    $checkStmt = $pdo->prepare("SELECT id, price FROM prices WHERE product_id = ? AND price_type = ? AND is_latest = 1");
+    $checkStmt->execute([$product_id, $type]);
+    $old = $checkStmt->fetch();
 
-    // 新增新價格
+    if ($old && floatval($old['price']) === $val) {
+      continue; // 價格沒變，不新增
+    }
+
+    // 價格變動 → 關閉舊價格
+    if ($old) {
+      $pdo->prepare("UPDATE prices SET is_latest = 0, end_at = NOW() WHERE id = ?")->execute([$old['id']]);
+    }
+
+    // 新增價格
     $pdo->prepare("INSERT INTO prices (product_id, price_type, price, start_at, is_latest)
                    VALUES (?, ?, ?, NOW(), 1)")
         ->execute([$product_id, $type, $val]);
