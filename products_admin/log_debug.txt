@@ -1,17 +1,18 @@
 Array
 (
-    [id] => 18
-    [brand_id] => 2
-    [category_id] => 4
-    [series_id] => 2
-    [name] => PRO 25
-    [sku] => 222
-    [price_msrp] => 123.00
-    [price_vip] => 123.00
-    [price_vvip] => 123.00
-    [price_wholesale] => 111.00
-    [price_cost] => 100
-    [short_desc] => 
+    [id] => 15
+    [brand_id] => 4
+    [category_id] => 5
+    [series_id] => 
+    [name] => 42
+    [sku] => 
+    [price_msrp] => 11111.00
+    [price_vip] => 1111.00
+    [price_vvip] => 111.00
+    [price_wholesale] => 11.00
+    [price_cost] => 12.00
+    [price_emma] => 
+    [short_desc] => ya
     [stock_quantity] => 0
     [status] => active
 )

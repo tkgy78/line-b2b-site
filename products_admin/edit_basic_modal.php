@@ -1,12 +1,10 @@
 <?php
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
-?>
-<?php
 require_once __DIR__ . '/../db.php';
 $pdo = connect();
 
-// ✅ 若是 AJAX 要求系列清單（根據品牌）
+// ✅ AJAX 請求系列清單
 if (isset($_GET['brand_id_only']) && $_GET['brand_id_only'] == '1') {
   $brand_id = $_GET['brand_id'] ?? 0;
   $stmt = $pdo->prepare("SELECT id, name FROM series WHERE brand_id = ? ORDER BY display_order ASC, name");
@@ -15,13 +13,12 @@ if (isset($_GET['brand_id_only']) && $_GET['brand_id_only'] == '1') {
   exit;
 }
 
+// ✅ 取得商品
 $id = $_GET['id'] ?? 0;
 if (!$id) {
   echo "<div class='text-danger'>未提供商品 ID</div>";
   exit;
 }
-
-// 1. 撈取商品資料
 $stmt = $pdo->prepare("SELECT * FROM products WHERE id = ?");
 $stmt->execute([$id]);
 $product = $stmt->fetch();
@@ -30,8 +27,8 @@ if (!$product) {
   exit;
 }
 
-// 2. 撈出定價（轉為價格陣列）
-$stmt = $pdo->prepare("SELECT price_type, price FROM prices WHERE product_id = ?");
+// ✅ 價格陣列
+$stmt = $pdo->prepare("SELECT price_type, price FROM prices WHERE product_id = ? AND is_latest = 1");
 $stmt->execute([$id]);
 $raw_prices = $stmt->fetchAll();
 $prices = [];
@@ -39,7 +36,7 @@ foreach ($raw_prices as $p) {
   $prices[$p['price_type']] = $p['price'];
 }
 
-// 3. 撈出品牌與分類
+// ✅ 下拉選單
 $brands     = $pdo->query("SELECT id, name FROM brands ORDER BY name")->fetchAll();
 $categories = $pdo->query("SELECT id, name FROM categories ORDER BY name")->fetchAll();
 ?>
@@ -82,7 +79,6 @@ $categories = $pdo->query("SELECT id, name FROM categories ORDER BY name")->fetc
           $stmt = $pdo->prepare("SELECT id, name FROM series WHERE brand_id = ? ORDER BY display_order ASC, name");
           $stmt->execute([$product['brand_id']]);
           $seriesList = $stmt->fetchAll();
-
           foreach ($seriesList as $s) {
             $selected = ($s['id'] == $product['series_id']) ? 'selected' : '';
             echo "<option value=\"{$s['id']}\" $selected>" . htmlspecialchars($s['name']) . "</option>";
@@ -105,7 +101,7 @@ $categories = $pdo->query("SELECT id, name FROM categories ORDER BY name")->fetc
     </div>
   </div>
 
-  <!-- 封面圖片 -->
+  <!-- 封面圖 -->
   <div class="mb-3">
     <label class="form-label">封面圖（若要更換）</label>
     <input type="file" name="cover_img" class="form-control">
@@ -116,16 +112,17 @@ $categories = $pdo->query("SELECT id, name FROM categories ORDER BY name")->fetc
     <?php endif; ?>
   </div>
 
-  <!-- 價格 -->
+  <!-- 價格欄位：6 欄（含 EMMA） -->
   <div class="row mb-3">
     <div class="col-6 col-lg-2"><label class="form-label">建議售</label><input name="price_msrp" class="form-control" value="<?= $prices['msrp'] ?? '' ?>"></div>
     <div class="col-6 col-lg-2"><label class="form-label">VIP</label><input name="price_vip" class="form-control" value="<?= $prices['vip'] ?? '' ?>"></div>
     <div class="col-6 col-lg-2"><label class="form-label">VVIP</label><input name="price_vvip" class="form-control" value="<?= $prices['vvip'] ?? '' ?>"></div>
     <div class="col-6 col-lg-2"><label class="form-label">批發</label><input name="price_wholesale" class="form-control" value="<?= $prices['wholesale'] ?? '' ?>"></div>
     <div class="col-6 col-lg-2"><label class="form-label">成本</label><input name="price_cost" class="form-control" value="<?= $prices['cost'] ?? '' ?>"></div>
+    <div class="col-6 col-lg-2"><label class="form-label">EMMA 價</label><input name="price_emma" class="form-control" value="<?= $prices['emma'] ?? '' ?>"></div>
   </div>
 
-  <!-- 簡述 / 庫存 / 狀態 -->
+  <!-- 商品簡述 / 庫存 / 狀態 -->
   <div class="row mb-3">
     <div class="col-md-9">
       <label class="form-label">商品簡述</label>
@@ -135,7 +132,6 @@ $categories = $pdo->query("SELECT id, name FROM categories ORDER BY name")->fetc
       <label class="form-label">庫存數量</label>
       <input type="number" name="stock_quantity" class="form-control" value="<?= $product['stock_quantity'] ?>">
 
-      <!-- 上架狀態 -->
       <div class="form-check mt-2">
         <input type="hidden" name="status" value="inactive">
         <input class="form-check-input" type="checkbox" name="status" value="active" id="st"
