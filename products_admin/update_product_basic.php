@@ -4,7 +4,6 @@ ini_set('display_errors', 1);
 error_reporting(E_ALL);
 $pdo = connect();
 
-// 驗證商品 ID
 $id = $_POST['id'] ?? 0;
 file_put_contents(__DIR__ . '/log_debug.txt', print_r($_POST, true) . "\n\n" . print_r($_FILES, true));
 if (!$id) {
@@ -66,16 +65,29 @@ try {
   $stmt = $pdo->prepare($sql);
   $stmt->execute($params);
 
-  // 每一種價格都更新歷史（end_at 寫入）
-  foreach ($prices as $type => $value) {
-    $stmt = $pdo->prepare("UPDATE prices SET is_latest = 0, end_at = NOW() 
-                          WHERE product_id = ? AND price_type = ? AND is_latest = 1");
-    $stmt->execute([$id, $type]);
+  // 僅當價格變動時，才新增新紀錄
+    foreach ($prices as $type => $value) {
+      // 查詢目前的最新價格
+      $stmt = $pdo->prepare("SELECT price FROM prices 
+                            WHERE product_id = ? AND price_type = ? AND is_latest = 1 
+                            ORDER BY start_at DESC LIMIT 1");
+      $stmt->execute([$id, $type]);
+      $current_price = $stmt->fetchColumn();
 
-    $stmt = $pdo->prepare("INSERT INTO prices (product_id, price_type, price, start_at, is_latest, end_at)
-                           VALUES (?, ?, ?, NOW(), 1, NULL)");
-    $stmt->execute([$id, $type, $value]);
-  }
+      if ($current_price === false || floatval($current_price) !== floatval($value)) {
+        // ✅ 強制結束所有尚未結束的紀錄，保證唯一性
+        $stmt = $pdo->prepare("UPDATE prices 
+                              SET is_latest = 0, end_at = NOW() 
+                              WHERE product_id = ? AND price_type = ? AND end_at IS NULL");
+        $stmt->execute([$id, $type]);
+
+        // 插入新紀錄
+        $stmt = $pdo->prepare("INSERT INTO prices 
+          (product_id, price_type, price, start_at, is_latest, end_at)
+          VALUES (?, ?, ?, NOW(), 1, NULL)");
+        $stmt->execute([$id, $type, $value]);
+      }
+    }
 
   $pdo->commit();
   echo 'success';

@@ -1,18 +1,18 @@
 Array
 (
-    [id] => 15
+    [id] => 21
     [brand_id] => 4
-    [category_id] => 5
+    [category_id] => 4
     [series_id] => 
-    [name] => 42
-    [sku] => 
-    [price_msrp] => 11111.00
-    [price_vip] => 1111.00
-    [price_vvip] => 111.00
-    [price_wholesale] => 11.00
-    [price_cost] => 12.00
-    [price_emma] => 
-    [short_desc] => ya
+    [name] => 1216
+    [sku] => 1216
+    [price_msrp] => 49800.00
+    [price_vip] => 22800.00
+    [price_vvip] => 20800.00
+    [price_wholesale] => 19800.00
+    [price_cost] => 15800.00
+    [price_emma] => 2
+    [short_desc] => hi
     [stock_quantity] => 0
     [status] => active
 )
