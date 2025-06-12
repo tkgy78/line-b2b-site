@@ -243,4 +243,58 @@ document.addEventListener('DOMContentLoaded', () => {
       });
   });
 });
+// 點擊匯入 CSV 按鈕載入 modal 並綁定提交事件
+document.getElementById('btn-open-import-modal').addEventListener('click', async () => {
+  const modalEl = document.getElementById('importCsvModal');
+  const modal = new bootstrap.Modal(modalEl);
+  modal.show();
+
+  const res = await fetch('import_modal.php');
+  const html = await res.text();
+  document.getElementById('import-modal-body').innerHTML = html;
+
+  // ⚠️ 在 Modal 載入完畢後再綁定提交事件
+  setTimeout(() => {
+    const form = document.getElementById('form-import-csv');
+    if (!form) return;
+
+    form.addEventListener('submit', async function (e) {
+      e.preventDefault();
+      const formData = new FormData(form);
+
+      try {
+        const res = await fetch('import_csv.php', {
+          method: 'POST',
+          body: formData
+        });
+
+        const text = await res.text();
+        let result;
+
+        try {
+          result = JSON.parse(text);
+        } catch (err) {
+          alert('⚠️ 回傳格式錯誤，請檢查 import_csv.php 是否正確輸出 JSON');
+          return;
+        }
+
+        if (result.success) {
+          alert(result.message || '✅ 匯入成功！');
+          modal.hide();
+          if (history.replaceState) history.replaceState(null, '', location.href);
+          setTimeout(() => location.reload(), 300);
+        } else {
+          let msg = result.message || '❌ 匯入失敗';
+          if (result.errors?.length) {
+            msg += '\n\n錯誤詳情：\n' + result.errors.join('\n');
+          }
+          alert(msg);
+        }
+
+      } catch (err) {
+        alert('❌ 匯入時發生錯誤：' + err.message);
+      }
+    });
+  }, 100);
+});
 </script>
