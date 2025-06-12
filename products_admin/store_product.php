@@ -44,13 +44,16 @@ $map = [
   'price_vip'       => 'vip',
   'price_vvip'      => 'vvip',
   'price_wholesale' => 'wholesale',
-  'price_cost'      => 'cost'
+  'price_cost'      => 'cost',
+  'price_emma'      => 'emma'  // ✅ 加入 EMMA 價格支援
 ];
+
 $pstmt = $pdo->prepare("INSERT INTO prices (product_id, price_type, price, start_at)
                         VALUES (?,?,?,NOW())");
-foreach ($map as $f => $t) {
-    if (isset($_POST[$f]) && $_POST[$f] !== '') {
-        $pstmt->execute([$product_id, $t, floatval($_POST[$f])]);
+
+foreach ($map as $formField => $type) {
+    if (isset($_POST[$formField]) && $_POST[$formField] !== '') {
+        $pstmt->execute([$product_id, $type, floatval($_POST[$formField])]);
     }
 }
 

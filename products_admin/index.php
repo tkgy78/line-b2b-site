@@ -2,14 +2,15 @@
 require_once __DIR__ . '/../db.php';
 $pdo = connect();
 
-// 取得品牌列表
+// 取得品牌
 $brandsStmt = $pdo->query("SELECT id, name FROM brands ORDER BY name ASC");
 $allBrands = $brandsStmt->fetchAll(PDO::FETCH_ASSOC);
 
-// 品牌篩選條件
-$filterBrandId = isset($_GET['brand_id']) && is_numeric($_GET['brand_id']) ? intval($_GET['brand_id']) : null;
+// 處理品牌篩選
+$filterBrandId = isset($_GET['brand_id']) && is_numeric($_GET['brand_id'])
+               ? intval($_GET['brand_id']) : null;
 
-// 撈商品資料與價格
+// 撈商品與價格資料
 $sql = "
   SELECT 
     p.id, p.sku, p.name AS product_name, p.cover_img, p.brand_id,
@@ -19,13 +20,14 @@ $sql = "
   JOIN brands b ON b.id = p.brand_id
   LEFT JOIN prices pr ON pr.product_id = p.id
   " . (
-    $filterBrandId ? "ORDER BY (p.brand_id = {$filterBrandId}) DESC, p.id DESC" : "ORDER BY p.id DESC"
+    $filterBrandId
+    ? "ORDER BY (p.brand_id = {$filterBrandId}) DESC, p.id DESC"
+    : "ORDER BY p.id DESC"
   );
 
 $stmt = $pdo->query($sql);
 $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-// 整理商品資料為陣列格式
 $products = [];
 foreach ($rows as $r) {
     $id = $r['id'];
@@ -61,8 +63,9 @@ include __DIR__ . '/partials/header.php';
     </div>
     <div class="col-12 col-md-4 mt-2 mt-md-0 text-md-end">
       <form class="d-inline" method="get" action="index.php">
-        <select name="brand_id" class="form-select form-select-sm d-inline w-auto" onchange="this.form.submit()">
-          <option value="">\u2014 全部品牌 \u2014</option>
+        <select name="brand_id" class="form-select form-select-sm d-inline w-auto"
+                onchange="this.form.submit()">
+          <option value="">— 全部品牌 —</option>
           <?php foreach ($allBrands as $b): ?>
             <option value="<?= $b['id'] ?>" <?= ($filterBrandId == $b['id']) ? 'selected' : '' ?>>
               <?= htmlspecialchars($b['name']) ?>
@@ -96,8 +99,7 @@ include __DIR__ . '/partials/header.php';
           <tr>
             <td class="d-none d-md-table-cell"><?= htmlspecialchars($p['sku']) ?></td>
             <td class="d-none d-md-table-cell">
-              <img src="/<?= htmlspecialchars($p['cover_img']) ?>" class="img-fluid img-thumb" style="max-width: 60px;">
-            </td>
+                  <img src="/line_b2b/<?= htmlspecialchars($p['cover_img']) ?>" class="img-fluid img-thumb" style="max-width: 60px;">            </td>
             <td><?= htmlspecialchars($p['brand_name']) ?></td>
             <td><?= htmlspecialchars($p['name']) ?></td>
             <td><?= $p['msrp'] ?></td>
@@ -126,47 +128,14 @@ include __DIR__ . '/partials/header.php';
   </div>
 </div>
 
-<!-- 📱 手機用詳細 Modal -->
-<div class="modal fade" id="moreModal" tabindex="-1">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">商品詳細</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body"></div>
-      <div class="modal-footer"></div>
-    </div>
-  </div>
-</div>
-
-<!-- 🖥️ 編輯用 Modal -->
-<div class="modal fade" id="editModal" tabindex="-1">
-  <div class="modal-dialog modal-xl modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">商品編輯</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body">
-        <ul class="nav nav-tabs mb-3">
-          <li class="nav-item"><a class="nav-link active" data-tab="basic" href="#">基本資料</a></li>
-          <li class="nav-item"><a class="nav-link" data-tab="detail" href="#">商品詳情</a></li>
-        </ul>
-        <div id="modal-tab-content">
-          <div class="text-center text-muted py-5">請選擇要編輯的分頁</div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
+<?php include __DIR__ . '/partials/footer.php'; ?>
 <script src="/line_b2b/vendor/ckeditor/ckeditor.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', () => {
   const tabLinks = document.querySelectorAll('#editModal .nav-link');
   const contentArea = document.querySelector('#modal-tab-content');
 
+  // 切換 tab 載入內容
   tabLinks.forEach(link => {
     link.addEventListener('click', async e => {
       e.preventDefault();
@@ -176,9 +145,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const pid = window.currentEditProductId;
       const url = `./${tab === 'basic' ? 'edit_basic_modal.php' : 'edit_detail_modal.php'}?id=${pid}`;
       const res = await fetch(url);
-      const html = await res.text();
-      contentArea.innerHTML = html;
-
+      contentArea.innerHTML = await res.text();
       setTimeout(() => {
         if (document.querySelector('#detailed_desc')) {
           CKEDITOR.replace('detailed_desc', { height: 300 });
@@ -187,42 +154,44 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
+  // 點擊 "編輯" 按鈕，載入基本資料 tab 並綁定儲存事件
   document.querySelectorAll('.btn-edit-modal').forEach(btn => {
     btn.addEventListener('click', async () => {
       window.currentEditProductId = btn.dataset.id;
       new bootstrap.Modal(document.getElementById('editModal')).show();
       const res = await fetch(`/line_b2b/products_admin/edit_basic_modal.php?id=${btn.dataset.id}`);
       const html = await res.text();
-      contentArea.innerHTML = html;
+      document.querySelector('#modal-tab-content').innerHTML = html;
       tabLinks.forEach(l => l.classList.remove('active'));
       document.querySelector('[data-tab="basic"]').classList.add('active');
 
+      // 綁定儲存按鈕事件
       const saveBtn = document.querySelector('#btn-save-basic');
       if (saveBtn) {
         saveBtn.addEventListener('click', () => {
           const form = document.querySelector('#form-basic');
+          if (!form) return alert('找不到表單');
           const formData = new FormData(form);
           fetch('/line_b2b/products_admin/update_product_basic.php', {
             method: 'POST',
             body: formData
           })
-            .then(res => res.text())
-            .then(msg => {
-              if (msg.trim() === 'success') {
-                alert('更新成功！');
-                location.reload();
-              } else {
-                alert('更新失敗：' + msg);
-              }
-            })
-            .catch(err => {
-              alert('錯誤：' + err);
-            });
+          .then(res => res.text())
+          .then(msg => {
+            if (msg.trim() === 'success') {
+              alert('更新成功！');
+              location.reload();
+            } else {
+              alert('更新失敗：' + msg);
+            }
+          })
+          .catch(err => alert('錯誤：' + err));
         });
       }
     });
   });
 
+  // 處理手機版 Modal "更多"
   const moreModal = document.getElementById('moreModal');
   moreModal.addEventListener('show.bs.modal', e => {
     const data = JSON.parse(e.relatedTarget.dataset.product);
@@ -245,9 +214,11 @@ document.addEventListener('DOMContentLoaded', () => {
       <button class="btn btn-secondary" data-bs-dismiss="modal">關閉</button>`;
   });
 });
+
+// Modal 關閉時清除 backdrop
 </script>
 <script>
-document.addEventListener('hidden.bs.modal', function (event) {
+document.addEventListener('hidden.bs.modal', function () {
   const backdrops = document.querySelectorAll('.modal-backdrop');
   backdrops.forEach(el => el.remove());
   document.body.classList.remove('modal-open');
@@ -255,4 +226,5 @@ document.addEventListener('hidden.bs.modal', function (event) {
   document.body.style.paddingRight = '';
 });
 </script>
+
 <?php include __DIR__ . '/partials/footer.php'; ?>

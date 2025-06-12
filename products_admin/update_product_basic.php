@@ -14,7 +14,7 @@ if (!$id) {
 }
 
 // 基本欄位
-$brand_id = isset($_POST['brand_id']) && $_POST['brand_id'] !== '' ? $_POST['brand_id'] : null;
+$brand_id       = isset($_POST['brand_id']) && $_POST['brand_id'] !== '' ? $_POST['brand_id'] : null;
 $category_id    = $_POST['category_id'] ?? null;
 $series_id      = ($_POST['series_id'] ?? '') !== '' ? $_POST['series_id'] : null;
 $name           = $_POST['name'] ?? '';
@@ -23,8 +23,8 @@ $short_desc     = $_POST['short_desc'] ?? '';
 $stock_quantity = $_POST['stock_quantity'] ?? 0;
 $status         = ($_POST['status'] ?? '') === 'active' ? 'active' : 'inactive';
 
-// 價格
-$price_types = ['msrp', 'vip', 'vvip', 'wholesale', 'cost'];
+// 價格處理
+$price_types = ['msrp', 'vip', 'vvip', 'wholesale', 'cost', 'emma'];
 $prices = [];
 foreach ($price_types as $type) {
   $key = 'price_' . $type;
@@ -33,10 +33,9 @@ foreach ($price_types as $type) {
   }
 }
 
-// ✅ 圖片處理（如有上傳則覆蓋）
+// 處理封面圖（如有上傳）
 $cover_sql_fragment = '';
 $cover_sql_params = [];
-
 if (!empty($_FILES['cover_img']['name'])) {
   $ext  = strtolower(pathinfo($_FILES['cover_img']['name'], PATHINFO_EXTENSION));
   $file = uniqid('cover_') . '.' . $ext;
@@ -54,7 +53,7 @@ if (!empty($_FILES['cover_img']['name'])) {
 try {
   $pdo->beginTransaction();
 
-  // 更新 products（動態補上 cover_img）
+  // 更新商品主檔
   $sql = "UPDATE products 
           SET brand_id=?, category_id=?, series_id=?, name=?, sku=?, short_desc=?, stock_quantity=?, status=?, updated_at=NOW()
           $cover_sql_fragment
@@ -67,21 +66,15 @@ try {
   $stmt = $pdo->prepare($sql);
   $stmt->execute($params);
 
-  // ✅ 僅將有變動的價格欄位設為歷史
-  if (!empty($prices)) {
-    $stmt = $pdo->prepare("UPDATE prices 
-                           SET is_latest = 0, end_at = NOW() 
-                           WHERE product_id = ? AND price_type = ? AND is_latest = 1");
-    foreach ($prices as $type => $value) {
-      $stmt->execute([$id, $type]);
-    }
+  // 每一種價格都更新歷史（end_at 寫入）
+  foreach ($prices as $type => $value) {
+    $stmt = $pdo->prepare("UPDATE prices SET is_latest = 0, end_at = NOW() 
+                          WHERE product_id = ? AND price_type = ? AND is_latest = 1");
+    $stmt->execute([$id, $type]);
 
-    // ✅ 寫入新的價格
     $stmt = $pdo->prepare("INSERT INTO prices (product_id, price_type, price, start_at, is_latest, end_at)
                            VALUES (?, ?, ?, NOW(), 1, NULL)");
-    foreach ($prices as $type => $value) {
-      $stmt->execute([$id, $type, $value]);
-    }
+    $stmt->execute([$id, $type, $value]);
   }
 
   $pdo->commit();

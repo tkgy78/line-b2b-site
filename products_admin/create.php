@@ -59,6 +59,7 @@ include __DIR__.'/partials/header.php';
     <div class="col-6 col-lg-2"><label class="form-label">VVIP</label><input name="price_vvip" class="form-control"></div>
     <div class="col-6 col-lg-2"><label class="form-label">批發</label><input name="price_wholesale" class="form-control"></div>
     <div class="col-6 col-lg-2"><label class="form-label">成本</label><input name="price_cost" class="form-control"></div>
+    <div class="col-6 col-lg-2"><label class="form-label">EMMA 價</label><input name="price_emma" class="form-control"></div>
   </div>
 
   <!-- 圖片 / 狀態 -->
@@ -66,7 +67,7 @@ include __DIR__.'/partials/header.php';
     <div class="col-md-6"><label class="form-label">封面圖</label><input type="file" name="cover_img" class="form-control"></div>
     <div class="col-md-3 d-flex align-items-end">
       <div class="form-check">
-        <input type="checkbox" name="status" value="active" ... >
+        <input type="checkbox" name="status" value="active" id="st">
         <label for="st" class="form-check-label">上架</label>
       </div>
     </div>
