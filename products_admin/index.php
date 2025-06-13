@@ -336,4 +336,37 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 });
+// 修正 Modal 關閉後 backdrop 灰幕未消失 bug
+const allModals = document.querySelectorAll('.modal');
+allModals.forEach(modalEl => {
+  modalEl.addEventListener('hidden.bs.modal', () => {
+    document.body.classList.remove('modal-open');
+    const backdrop = document.querySelector('.modal-backdrop');
+    if (backdrop) backdrop.remove();
+  });
+});
+
+// ✅ 綁定 modal 內圖片刪除按鈕的事件（因為 AJAX 載入不會執行 <script>）
+document.addEventListener('click', function (e) {
+  const btn = e.target.closest('.btn-delete-img');
+  if (!btn) return;
+
+  const id = btn.dataset.id;
+  const pid = btn.dataset.pid;
+
+  if (!confirm("確定要刪除這張圖片？")) return;
+
+  fetch(`/line_b2b/products_admin/delete_image.php?id=${id}&pid=${pid}`)
+    .then(res => {
+      if (res.ok) {
+        btn.closest('div.border').remove();
+      } else {
+        alert("刪除失敗");
+      }
+    })
+    .catch(err => {
+      console.error(err);
+      alert("發生錯誤，無法刪除圖片");
+    });
+});
 </script>

@@ -8,6 +8,7 @@ if (!$id || !is_numeric($id)) {
   exit;
 }
 
+// 撈主商品
 $stmt = $pdo->prepare("SELECT id FROM products WHERE id = ?");
 $stmt->execute([$id]);
 $product = $stmt->fetch();
@@ -16,10 +17,10 @@ if (!$product) {
   exit;
 }
 
-// 撈詳細資料
+// 撈詳細資料（product_details）
 $detailStmt = $pdo->prepare("SELECT * FROM product_details WHERE product_id = ?");
 $detailStmt->execute([$id]);
-$detail = $detailStmt->fetch(PDO::FETCH_ASSOC) ?: ['detailed_desc' => '', 'spec_file' => '', 'manual_file' => ''];
+$detail = $detailStmt->fetch(PDO::FETCH_ASSOC) ?: ['detail_html' => '', 'spec_file' => '', 'manual_file' => ''];
 
 // 撈圖片
 $stmt = $pdo->prepare("SELECT id, image_url FROM product_images WHERE product_id = ? ORDER BY id");
@@ -33,7 +34,7 @@ $productImages = $stmt->fetchAll();
   <!-- 商品說明 -->
   <div class="mb-3">
     <label class="form-label">詳細說明</label>
-    <textarea name="detailed_desc" id="detailed_desc" rows="10" class="form-control"><?= htmlspecialchars($detail['detailed_desc']) ?></textarea>
+    <textarea name="detail_html" id="detailed_desc" rows="10" class="form-control"><?= htmlspecialchars($detail['detail_html']) ?></textarea>
   </div>
 
   <!-- 圖片管理 -->
@@ -45,9 +46,9 @@ $productImages = $stmt->fetchAll();
   <div class="d-flex flex-wrap gap-2">
     <?php foreach ($productImages as $img): ?>
       <div class="border p-1 text-center">
-        <img src="/<?= htmlspecialchars($img['image_url']) ?>" style="width: 80px; height: 80px; object-fit: cover;">
+        <img src="/line_b2b/<?= htmlspecialchars($img['image_url']) ?>" style="width: 80px; height: 80px; object-fit: cover;">
         <div class="mt-1">
-          <a href="delete_image.php?id=<?= $img['id'] ?>&pid=<?= $id ?>" class="btn btn-sm btn-outline-danger">刪除</a>
+          <button type="button" class="btn btn-sm btn-outline-danger btn-delete-img" data-id="<?= $img['id'] ?>" data-pid="<?= $id ?>">刪除</button>
         </div>
       </div>
     <?php endforeach; ?>
@@ -75,6 +76,7 @@ $productImages = $stmt->fetchAll();
   </div>
 </form>
 
+<!-- CKEditor -->
 <script src="/line_b2b/vendor/ckeditor/ckeditor.js"></script>
 <script>
   setTimeout(() => {
@@ -82,4 +84,29 @@ $productImages = $stmt->fetchAll();
       CKEDITOR.replace('detailed_desc', { height: 300 });
     }
   }, 200);
+</script>
+
+<script>
+// 👇 專門針對「商品詳情 modal 內圖片刪除」的事件綁定
+document.addEventListener('click', function (e) {
+  if (!e.target.classList.contains('btn-delete-img')) return;
+
+  const id = e.target.dataset.id;
+  const pid = e.target.dataset.pid;
+
+  if (!confirm("確定要刪除這張圖片？")) return;
+
+  fetch(`/line_b2b/products_admin/delete_image.php?id=${id}&pid=${pid}`)
+    .then(res => {
+      if (res.ok) {
+        e.target.closest('div.border').remove();
+      } else {
+        alert("刪除失敗");
+      }
+    })
+    .catch(err => {
+      console.error(err);
+      alert("發生錯誤，無法刪除圖片");
+    });
+});
 </script>

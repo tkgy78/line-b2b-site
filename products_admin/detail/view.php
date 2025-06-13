@@ -36,14 +36,20 @@ foreach ($priceStmt->fetchAll() as $row) {
 $mainImage = $product['cover_img'] ?? '';
 $gallery = [];
 try {
-  $imgStmt = $pdo->prepare("SELECT img_path FROM product_images WHERE product_id = ?");
+  // 修正欄位名稱 image_url
+  $imgStmt = $pdo->prepare("SELECT image_url FROM product_images WHERE product_id = ?");
   $imgStmt->execute([$id]);
   $gallery = $imgStmt->fetchAll(PDO::FETCH_COLUMN);
 } catch (Exception $e) {
   $gallery = [];
 }
 
-// 取得此商品綁定的所有軟體及其最新版本
+// 撈產品說明
+$detailStmt = $pdo->prepare("SELECT detail_html FROM product_details WHERE product_id = ?");
+$detailStmt->execute([$id]);
+$detailHtml = $detailStmt->fetchColumn() ?? '';
+
+// 撈綁定軟體
 $softwares = $pdo->prepare("
   SELECT s.name AS software_name, v.version, v.file_path, v.changelog
   FROM product_software ps
@@ -83,9 +89,10 @@ $softwareRows = $softwares->fetchAll();
         <?php
           $mainImagePath = !empty($mainImage) ? htmlspecialchars($mainImage) : 'uploads/product_files/no-image.png';
         ?>
-        <img src="/<?= $mainImagePath ?>" class="img-fluid mb-3" alt="主圖">      <div class="d-flex flex-wrap gap-2">
+        <img src="/line_b2b/<?= $mainImagePath ?>" class="img-fluid mb-3" alt="主圖">
+        <div class="d-flex flex-wrap gap-2">
         <?php foreach ($gallery as $img): ?>
-          <img src="/<?= htmlspecialchars($img) ?>" class="thumb" alt="圖">
+          <img src="/line_b2b/<?= htmlspecialchars($img) ?>" class="thumb" alt="圖">
         <?php endforeach; ?>
       </div>
     </div>
@@ -119,12 +126,12 @@ $softwareRows = $softwares->fetchAll();
     </div>
   </div>
 
-  <?php if (!empty($product['detailed_desc'])): ?>
+  <?php if (!empty($detailHtml)): ?>
     <div class="row mt-5">
       <div class="col">
         <div class="card">
           <div class="card-header bg-dark text-white">產品說明</div>
-          <div class="card-body"><?= $product['detailed_desc'] ?></div>
+          <div class="card-body"><?= $detailHtml ?></div>
         </div>
       </div>
     </div>
