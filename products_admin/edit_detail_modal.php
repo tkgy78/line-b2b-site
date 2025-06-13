@@ -59,7 +59,12 @@ $productImages = $stmt->fetchAll();
     <label class="form-label">上傳規格書 PDF</label>
     <input type="file" name="spec_file" accept="application/pdf" class="form-control mb-2">
     <?php if (!empty($detail['spec_file'])): ?>
-      <a href="/<?= htmlspecialchars($detail['spec_file']) ?>" target="_blank" class="d-block">已上傳：<?= basename($detail['spec_file']) ?></a>
+      <div class="pdf-wrapper d-flex align-items-center justify-content-between border p-2 mb-2 bg-light">
+        <a href="/<?= htmlspecialchars($detail['spec_file']) ?>" target="_blank">
+          <?= basename($detail['spec_file']) ?>
+        </a>
+        <button type="button" class="btn btn-sm btn-outline-danger btn-delete-pdf" data-type="spec" data-pid="<?= $product['id'] ?>">刪除</button>
+      </div>
     <?php endif; ?>
   </div>
 
@@ -67,7 +72,12 @@ $productImages = $stmt->fetchAll();
     <label class="form-label">上傳使用手冊 PDF</label>
     <input type="file" name="manual_file" accept="application/pdf" class="form-control mb-2">
     <?php if (!empty($detail['manual_file'])): ?>
-      <a href="/<?= htmlspecialchars($detail['manual_file']) ?>" target="_blank" class="d-block">已上傳：<?= basename($detail['manual_file']) ?></a>
+      <div class="pdf-wrapper d-flex align-items-center justify-content-between border p-2 mb-2 bg-light">
+        <a href="/<?= htmlspecialchars($detail['manual_file']) ?>" target="_blank">
+          <?= basename($detail['manual_file']) ?>
+        </a>
+        <button type="button" class="btn btn-sm btn-outline-danger btn-delete-pdf" data-type="manual" data-pid="<?= $product['id'] ?>">刪除</button>
+      </div>
     <?php endif; ?>
   </div>
 
@@ -87,26 +97,48 @@ $productImages = $stmt->fetchAll();
 </script>
 
 <script>
-// 👇 專門針對「商品詳情 modal 內圖片刪除」的事件綁定
+// 👇 圖片刪除功能（AJAX，不跳頁）
 document.addEventListener('click', function (e) {
-  if (!e.target.classList.contains('btn-delete-img')) return;
+  if (e.target.classList.contains('btn-delete-img')) {
+    const id = e.target.dataset.id;
+    const pid = e.target.dataset.pid;
 
-  const id = e.target.dataset.id;
-  const pid = e.target.dataset.pid;
+    if (!confirm("確定要刪除這張圖片？")) return;
 
-  if (!confirm("確定要刪除這張圖片？")) return;
+    fetch(`/line_b2b/products_admin/delete_image.php?id=${id}&pid=${pid}`)
+      .then(res => {
+        if (res.ok) {
+          e.target.closest('div.border').remove();
+        } else {
+          alert("刪除失敗");
+        }
+      })
+      .catch(err => {
+        console.error(err);
+        alert("發生錯誤，無法刪除圖片");
+      });
+  }
 
-  fetch(`/line_b2b/products_admin/delete_image.php?id=${id}&pid=${pid}`)
-    .then(res => {
-      if (res.ok) {
-        e.target.closest('div.border').remove();
-      } else {
-        alert("刪除失敗");
-      }
-    })
-    .catch(err => {
-      console.error(err);
-      alert("發生錯誤，無法刪除圖片");
-    });
+  // 👇 PDF 刪除功能（spec/manual）
+  if (e.target.classList.contains('btn-delete-pdf')) {
+    const type = e.target.dataset.type;
+    const pid = e.target.dataset.pid;
+
+    if (!confirm("確定要刪除這個 PDF 檔案？")) return;
+
+    fetch(`/line_b2b/products_admin/delete_pdf.php?type=${type}&pid=${pid}`)
+      .then(res => res.text())
+      .then(txt => {
+        if (txt.trim() === 'success') {
+          e.target.closest('.d-flex').remove();
+        } else {
+          alert('刪除失敗：' + txt);
+        }
+      })
+      .catch(err => {
+        console.error(err);
+        alert('發生錯誤，無法刪除 PDF');
+      });
+  }
 });
 </script>

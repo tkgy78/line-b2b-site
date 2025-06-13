@@ -369,4 +369,30 @@ document.addEventListener('click', function (e) {
       alert("發生錯誤，無法刪除圖片");
     });
 });
+// 👇 針對 PDF 刪除（規格書 / 使用手冊）
+document.addEventListener('click', function (e) {
+  const btn = e.target.closest('.btn-delete-pdf');
+  if (!btn) return;
+
+  const type = btn.dataset.type;  // spec 或 manual
+  const pid = btn.dataset.pid;
+
+  if (!confirm("確定要刪除這個 PDF 檔案？")) return;
+
+  fetch(`/line_b2b/products_admin/delete_pdf.php?type=${type}&pid=${pid}`)
+    .then(res => res.text())
+    .then(text => {
+      if (text.trim() === 'success') {
+        // 從畫面移除整個區塊（PDF 連結 + 按鈕）
+        const wrapper = btn.closest('.pdf-wrapper') || btn.closest('.d-flex');
+        if (wrapper) wrapper.remove();
+      } else {
+        alert("刪除失敗：" + text);
+      }
+    })
+    .catch(err => {
+      console.error(err);
+      alert("發生錯誤，無法刪除 PDF");
+    });
+});
 </script>
