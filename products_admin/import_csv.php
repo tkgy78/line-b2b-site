@@ -88,15 +88,30 @@ while (($row = fgetcsv($handle)) !== false) {
   $existing = $productStmt->fetch(PDO::FETCH_ASSOC);
 
   if ($existing) {
-    // 更新
+  // 檢查是否有資料異動
+  $isSame = (
+    $existing['category_id'] == $category_id &&
+    $existing['series_id'] == $series_id &&
+    $existing['short_desc'] == $short_desc &&
+    $existing['unit'] == $unit &&
+    $existing['barcode'] == $barcode &&
+    $existing['stock_quantity'] == ($stock ?: 0)
+  );
+
+  if (!$isSame) {
     $updateStmt = $pdo->prepare("UPDATE products SET category_id=?, series_id=?, short_desc=?, unit=?, barcode=?, stock_quantity=?, updated_at=NOW() WHERE id=?");
     $updateStmt->execute([
       $category_id, $series_id, $short_desc, $unit, $barcode, $stock ?: 0, $existing['id']
     ]);
     $updated++;
     $updatedItems[] = "【{$brandName} / {$name}】更新商品基本資料";
-    $product_id = $existing['id'];
   } else {
+    $skipped++;
+// 不加 $skippedRows[]，避免顯示
+  }
+
+  $product_id = $existing['id'];
+} else {
     // 新增
     $insertStmt = $pdo->prepare("INSERT INTO products (brand_id, category_id, series_id, name, sku, model, short_desc, stock_quantity, unit, barcode, cover_img, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'uploads/product_images/no-image.png', 'active', NOW(), NOW())");
     $insertStmt->execute([
