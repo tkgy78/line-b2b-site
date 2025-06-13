@@ -4,16 +4,23 @@ $pdo = connect();
 
 header('Content-Type: application/json');
 
+// 上傳檢查
 if (empty($_FILES['csv_file']) || $_FILES['csv_file']['error'] !== UPLOAD_ERR_OK) {
   echo json_encode(['success' => false, 'message' => '請選擇要匯入的 CSV 檔案']);
   exit;
 }
 
+// 嘗試讀取 CSV
 $file = $_FILES['csv_file']['tmp_name'];
 $handle = fopen($file, 'r');
 if (!$handle) {
   echo json_encode(['success' => false, 'message' => '無法讀取上傳的檔案']);
   exit;
+}
+
+// 轉碼函式
+function safe_utf8($text) {
+  return mb_convert_encoding($text, 'UTF-8', 'UTF-8, BIG-5, ISO-8859-1');
 }
 
 $headers = fgetcsv($handle);
@@ -22,13 +29,19 @@ $errors = [];
 
 while (($row = fgetcsv($handle)) !== false) {
   $rowCount++;
-  $row = array_map('trim', $row);
+  $row = array_map('trim', array_map('safe_utf8', $row));
 
   [$brandName, $categoryName, $seriesName, $name, $sku,
    $short_desc, $unit, $barcode, $stock,
    $msrp, $vip, $vvip, $wholesale, $cost, $emma] = array_pad($row, 15, '');
 
-  // 品牌
+  // 跳過空 SKU
+  if ($sku === '') {
+    $errors[] = "第 $rowCount 行：SKU 為空，略過";
+    continue;
+  }
+
+  // 取得品牌
   $brandStmt = $pdo->prepare("SELECT id FROM brands WHERE name = ?");
   $brandStmt->execute([$brandName]);
   $brand = $brandStmt->fetch();
@@ -38,7 +51,7 @@ while (($row = fgetcsv($handle)) !== false) {
   }
   $brand_id = $brand['id'];
 
-  // 分類
+  // 取得分類
   $catStmt = $pdo->prepare("SELECT id FROM categories WHERE name = ?");
   $catStmt->execute([$categoryName]);
   $cat = $catStmt->fetch();
@@ -48,26 +61,26 @@ while (($row = fgetcsv($handle)) !== false) {
   }
   $category_id = $cat['id'];
 
-  // 系列（可空）
+  // 查找系列（只依 brand 查，不連動 category）
   $series_id = null;
   if ($seriesName !== '') {
-    $seriesStmt = $pdo->prepare("SELECT id FROM series WHERE name = ?");
-    $seriesStmt->execute([$seriesName]);
+    $seriesStmt = $pdo->prepare("SELECT id FROM series WHERE name = ? AND brand_id = ?");
+    $seriesStmt->execute([$seriesName, $brand_id]);
     $series = $seriesStmt->fetch();
     if (!$series) {
-      $errors[] = "第 $rowCount 行：找不到系列「$seriesName」";
+      $errors[] = "第 $rowCount 行：找不到系列「$seriesName」（品牌：$brandName）";
       continue;
     }
     $series_id = $series['id'];
   }
 
-  // 檢查是否已存在商品（用品牌、名稱、SKU 判斷）
+  // 檢查是否已有該商品
   $productStmt = $pdo->prepare("SELECT * FROM products WHERE brand_id = ? AND name = ? AND sku = ?");
   $productStmt->execute([$brand_id, $name, $sku]);
   $existing = $productStmt->fetch(PDO::FETCH_ASSOC);
 
   if ($existing) {
-    // 更新商品（如資料有異動）
+    // 更新基本欄位
     $updateStmt = $pdo->prepare("UPDATE products SET category_id=?, series_id=?, short_desc=?, unit=?, barcode=?, stock_quantity=?, updated_at=NOW() WHERE id=?");
     $updateStmt->execute([
       $category_id, $series_id, $short_desc, $unit, $barcode, $stock ?: 0, $existing['id']
@@ -87,7 +100,7 @@ while (($row = fgetcsv($handle)) !== false) {
     $product_id = $pdo->lastInsertId();
   }
 
-  // 價格邏輯（只在有異動時才新增）
+  // 價格欄位處理（只新增變更過的價格）
   $priceMap = [
     'msrp'      => $msrp,
     'vip'       => $vip,
@@ -100,21 +113,16 @@ while (($row = fgetcsv($handle)) !== false) {
     if ($val === '') continue;
     $val = floatval($val);
 
-    // 查詢舊價格
     $checkStmt = $pdo->prepare("SELECT id, price FROM prices WHERE product_id = ? AND price_type = ? AND is_latest = 1");
     $checkStmt->execute([$product_id, $type]);
     $old = $checkStmt->fetch();
 
-    if ($old && floatval($old['price']) === $val) {
-      continue; // 價格沒變，不新增
-    }
+    if ($old && floatval($old['price']) === $val) continue;
 
-    // 價格變動 → 關閉舊價格
     if ($old) {
       $pdo->prepare("UPDATE prices SET is_latest = 0, end_at = NOW() WHERE id = ?")->execute([$old['id']]);
     }
 
-    // 新增價格
     $pdo->prepare("INSERT INTO prices (product_id, price_type, price, start_at, is_latest)
                    VALUES (?, ?, ?, NOW(), 1)")
         ->execute([$product_id, $type, $val]);
@@ -123,6 +131,7 @@ while (($row = fgetcsv($handle)) !== false) {
 
 fclose($handle);
 
+// 回傳結果
 if (count($errors)) {
   echo json_encode(['success' => false, 'message' => '部分資料匯入失敗', 'errors' => $errors]);
 } else {
