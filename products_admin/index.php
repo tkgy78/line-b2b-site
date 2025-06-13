@@ -207,6 +207,7 @@ document.addEventListener('DOMContentLoaded', () => {
             body: formData
           });
           const text = await res.text();
+          console.log('📦 Raw response:', text);
           let result;
 
           try {
@@ -217,17 +218,35 @@ document.addEventListener('DOMContentLoaded', () => {
           }
 
           if (result.success) {
-            alert(result.message || '✅ 匯入成功！');
+            let msg = `✅ ${result.message}\n`;
+            msg += `\n📊 匯入總結：\n`;
+            msg += `- 匯入筆數：${result.summary.total_rows}\n`;
+            msg += `- 新增商品：${result.summary.inserted}\n`;
+            msg += `- 更新商品：${result.summary.updated}\n`;
+            msg += `- 價格異動：${result.summary.price_changes}\n`;
+            msg += `- 略過筆數：${result.summary.skipped}\n`;
+
+            if (result.inserted_items?.length > 0) {
+              msg += `\n🆕 新增商品：\n` + result.inserted_items.join('\n') + '\n';
+            }
+            if (result.updated_items?.length > 0) {
+              msg += `\n✏️ 更新商品：\n` + result.updated_items.join('\n') + '\n';
+            }
+            if (result.price_changes_detail?.length > 0) {
+              msg += `\n💲 價格異動：\n` + result.price_changes_detail.join('\n') + '\n';
+            }
+            if (result.skipped_rows?.length > 0) {
+              msg += `\n⏭️ 略過項目：\n` + result.skipped_rows.join('\n') + '\n';
+            }
+            if (result.errors?.length > 0) {
+              msg += `\n❗ 錯誤訊息：\n` + result.errors.join('\n') + '\n';
+            }
+
+            alert(msg);
             modal.hide();
             if (history.replaceState) history.replaceState(null, '', location.href);
             setTimeout(() => location.reload(), 300);
-          } else {
-            let msg = result.message || '❌ 匯入失敗';
-            if (result.errors?.length) {
-              msg += '\n\n錯誤詳情：\n' + result.errors.join('\n');
             }
-            alert(msg);
-          }
 
         } catch (err) {
           alert('❌ 匯入時發生錯誤：' + err.message);
