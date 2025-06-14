@@ -38,21 +38,21 @@ $productImages = $stmt->fetchAll();
   </div>
 
   <!-- 圖片管理 -->
-  <div class="mb-3">
-    <label class="form-label">新增圖片（可多選）</label>
-    <input type="file" name="images[]" multiple class="form-control" accept="image/*">
-  </div>
-  <div class="mb-2">已上傳圖片如下：</div>
-  <div class="d-flex flex-wrap gap-2">
-    <?php foreach ($productImages as $img): ?>
-      <div class="border p-1 text-center">
-        <img src="/line_b2b/<?= htmlspecialchars($img['image_url']) ?>" style="width: 80px; height: 80px; object-fit: cover;">
-        <div class="mt-1">
-          <button type="button" class="btn btn-sm btn-outline-danger btn-delete-img" data-id="<?= $img['id'] ?>" data-pid="<?= $id ?>">刪除</button>
-        </div>
+<div class="mb-3">
+  <label class="form-label">新增圖片（可多選）</label>
+  <input type="file" name="images[]" multiple class="form-control" accept="image/*">
+</div>
+<div class="mb-2">已上傳圖片如下（可拖曳排序）：</div>
+<div id="sortable-images" class="d-flex flex-wrap gap-2">
+  <?php foreach ($productImages as $img): ?>
+    <div class="sortable-item border p-1 text-center" data-id="<?= $img['id'] ?>">
+      <img src="/line_b2b/<?= htmlspecialchars($img['image_url']) ?>" style="width: 80px; height: 80px; object-fit: cover;">
+      <div class="mt-1">
+        <button type="button" class="btn btn-sm btn-outline-danger btn-delete-img" data-id="<?= $img['id'] ?>" data-pid="<?= $id ?>">刪除</button>
       </div>
-    <?php endforeach; ?>
-  </div>
+    </div>
+  <?php endforeach; ?>
+</div>
 
   <!-- PDF 區 -->
   <div class="mb-3 mt-4">
@@ -97,7 +97,7 @@ $productImages = $stmt->fetchAll();
 </script>
 
 <script>
-// 👇 圖片刪除功能（AJAX，不跳頁）
+// 👇 圖片 & PDF 刪除功能（AJAX，不跳頁）
 document.addEventListener('click', function (e) {
   if (e.target.classList.contains('btn-delete-img')) {
     const id = e.target.dataset.id;
@@ -141,4 +141,33 @@ document.addEventListener('click', function (e) {
       });
   }
 });
+
+// ✅ 初始化圖片拖曳排序（jQuery UI sortable）
+setTimeout(() => {
+  if (window.jQuery && $('#sortable-images').length > 0) {
+    $('#sortable-images').sortable({
+      update: function () {
+        const order = $(this).children('.sortable-item').map(function () {
+          return $(this).data('id');
+        }).get();
+
+        fetch('/line_b2b/products_admin/update_image_order.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ order })
+        })
+        .then(res => res.text())
+        .then(text => {
+          if (text.trim() !== 'success') {
+            alert('儲存圖片順序失敗：' + text);
+          }
+        })
+        .catch(err => {
+          console.error(err);
+          alert('發生錯誤，無法儲存排序');
+        });
+      }
+    });
+  }
+}, 200);
 </script>

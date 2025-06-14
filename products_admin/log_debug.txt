@@ -11,7 +11,7 @@ Array
     [price_vvip] => 11900.00
     [price_wholesale] => 8000.00
     [price_cost] => 6000.00
-    [price_emma] => 11
+    [price_emma] => 33.00
     [short_desc] => 讚
     [stock_quantity] => 0
     [status] => active

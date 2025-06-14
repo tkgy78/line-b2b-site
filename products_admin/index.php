@@ -177,6 +177,12 @@ include __DIR__ . '/partials/header.php';
 </div>
 
 <?php include __DIR__ . '/partials/footer.php'; ?>
+<!-- jQuery 本體 -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<!-- jQuery UI（sortable 功能） -->
+<script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+
 <script src="/line_b2b/vendor/ckeditor/ckeditor.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', () => {
@@ -322,10 +328,37 @@ document.addEventListener('DOMContentLoaded', () => {
         if (document.querySelector('#detailed_desc')) {
           CKEDITOR.replace('detailed_desc', { height: 300 });
         }
-      }, 100);
+
+        // ✅ 拖曳排序初始化（圖片）
+        if (window.jQuery && $('#sortable-images').length > 0) {
+          $('#sortable-images').sortable({
+            update: function () {
+              const order = $(this).children('.sortable-item').map(function () {
+                return $(this).data('id');
+              }).get();
+
+              fetch('/line_b2b/products_admin/update_image_order.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ order })
+              })
+              .then(res => res.text())
+              .then(text => {
+                if (text.trim() !== 'success') {
+                  alert('儲存圖片順序失敗：' + text);
+                }
+              })
+              .catch(err => {
+                console.error(err);
+                alert('發生錯誤，無法儲存排序');
+              });
+            }
+          });
+        }
+
+      }, 100); // end of setTimeout
     }
   });
-
   // 修正 Modal 關閉後 backdrop 灰幕未消失 bug
   const allModals = document.querySelectorAll('.modal');
   allModals.forEach(modalEl => {

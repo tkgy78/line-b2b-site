@@ -37,7 +37,7 @@ $mainImage = $product['cover_img'] ?? '';
 $gallery = [];
 try {
   // 修正欄位名稱 image_url
-  $imgStmt = $pdo->prepare("SELECT image_url FROM product_images WHERE product_id = ?");
+  $imgStmt = $pdo->prepare("SELECT image_url FROM product_images WHERE product_id = ? ORDER BY sort_order ASC, id ASC");
   $imgStmt->execute([$id]);
   $gallery = $imgStmt->fetchAll(PDO::FETCH_COLUMN);
 } catch (Exception $e) {
@@ -62,40 +62,48 @@ $softwares->execute([$id]);
 $softwareRows = $softwares->fetchAll();
 ?>
 
-<!DOCTYPE html>
-<html lang="zh-Hant">
-<head>
-  <meta charset="UTF-8">
-  <title><?= htmlspecialchars($product['name']) ?> - 商品詳情</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <style>
-    body { background: #f8f9fa; }
-    .product-card { background: #fff; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.05); }
-    .product-title { font-size: 1.75rem; font-weight: 600; }
-    .product-brand { font-size: 1.2rem; color: #333; font-weight: 500; }
-    .product-category { font-size: 0.95rem; color: #777; }
-    .price { font-size: 1.5rem; color: #d9230f; font-weight: bold; }
-    .sub-price { font-size: 1rem; color: #333; }
-    .thumb { width: 80px; height: 80px; object-fit: cover; cursor: pointer; border: 1px solid #ccc; border-radius: 5px; }
-    .badge-stock { font-size: 0.9rem; }
-  </style>
-</head>
-<body>
+<?php include __DIR__ . '/../../partials/frontend_header.php'; ?>
+
+<style>
+  .product-card { background: #fff; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.05); }
+  .product-title { font-size: 1.75rem; font-weight: 600; }
+  .product-brand { font-size: 1.2rem; color: #333; font-weight: 500; }
+  .product-category { font-size: 0.95rem; color: #777; }
+  .price { font-size: 1.5rem; color: #d9230f; font-weight: bold; }
+  .sub-price { font-size: 1rem; color: #333; }
+  .thumb { width: 70px; height: 70px; object-fit: cover; cursor: pointer; border: 1px solid #ccc; border-radius: 5px; }
+  .badge-stock { font-size: 0.9rem; }
+  .image-frame { max-width: 100%; border-radius: 10px; overflow: hidden; background: #f0f0f0; text-align: center; padding: 10px; }
+  .image-frame img { max-width: 100%; max-height: 400px; object-fit: contain; }
+  .thumb-list { overflow-x: auto; white-space: nowrap; padding-top: 10px; }
+  .thumb-list .thumb { margin-right: 8px; display: inline-block; }
+</style>
 
 <div class="container py-5">
   <div class="row">
     <div class="col-md-6">
+      <div class="image-frame mb-3">
         <?php
-          $mainImagePath = !empty($mainImage) ? htmlspecialchars($mainImage) : 'uploads/product_files/no-image.png';
+          // 主圖邏輯：有圖則取第一張，否則用 cover_img，再否則用預設圖
+          $mainImagePath = '';
+          if (!empty($gallery)) {
+            $mainImagePath = $gallery[0];
+          } elseif (!empty($product['cover_img'])) {
+            $mainImagePath = $product['cover_img'];
+          } else {
+            $mainImagePath = 'uploads/product_files/no-image.png';
+          }
+          $mainImagePath = htmlspecialchars($mainImagePath);
         ?>
-        <img src="/line_b2b/<?= $mainImagePath ?>" class="img-fluid mb-3" alt="主圖">
-        <div class="d-flex flex-wrap gap-2">
+        <img id="mainImage" src="/line_b2b/<?= $mainImagePath ?>" class="img-fluid" alt="主圖">
+      </div>
+      <div class="thumb-list">
         <?php foreach ($gallery as $img): ?>
-          <img src="/line_b2b/<?= htmlspecialchars($img) ?>" class="thumb" alt="圖">
+          <img src="/line_b2b/<?= htmlspecialchars($img) ?>" class="thumb" onclick="changeMainImage(this.src)" alt="圖">
         <?php endforeach; ?>
       </div>
     </div>
+
     <div class="col-md-6">
       <div class="product-card p-4">
         <div class="product-brand mb-1"><?= htmlspecialchars($brandName) ?></div>
@@ -161,6 +169,10 @@ $softwareRows = $softwares->fetchAll();
   <?php endif; ?>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+<script>
+function changeMainImage(src) {
+  document.getElementById('mainImage').src = src;
+}
+</script>
+
+<?php include __DIR__ . '/../../partials/frontend_footer.php'; ?>
